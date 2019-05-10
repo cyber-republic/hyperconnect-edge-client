@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane fx:id="sensorOverviewPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyper.connect.controller.SensorOverviewController">
+   <children>
+      <AnchorPane prefHeight="400.0" prefWidth="640.0" style="-fx-background-color: #EDF2F4;" stylesheets="@../styles/custom_styles.css">
+         <children>
+            <AnchorPane layoutX="160.0" layoutY="83.0" prefHeight="200.0" prefWidth="200.0" styleClass="pane_background" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+               <children>
+                  <TabPane layoutX="63.0" layoutY="41.0" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <tabs>
+                      <Tab text="Input Attributes">
+                        <content>
+                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                 <children>
+                                    <Text fx:id="inputTitleText" strokeType="OUTSIDE" strokeWidth="0.0" text="Input Attribute List" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                       <font>
+                                          <Font name="System Bold" size="15.0" />
+                                       </font>
+                                    </Text>
+                                    <TableView fx:id="inputTableView" layoutX="9.0" layoutY="45.0" prefHeight="200.0" prefWidth="600.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0">
+                                      <columns>
+                                        <TableColumn fx:id="inputIdColumn" minWidth="40.0" prefWidth="40.0" resizable="false" text="ID" />
+                                        <TableColumn fx:id="inputNameColumn" minWidth="100.0" prefWidth="100.0" text="Name" />
+                                          <TableColumn fx:id="inputTypeColumn" minWidth="100.0" prefWidth="100.0" text="Type" />
+                                          <TableColumn fx:id="inputLatestValueColumn" minWidth="180.0" prefWidth="180.0" text="Latest Value" />
+                                          <TableColumn fx:id="inputDateTimeColumn" minWidth="167.0" prefWidth="172.0" text="Date and Time" />
+                                      </columns>
+                                       <columnResizePolicy>
+                                          <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                       </columnResizePolicy>
+                                    </TableView>
+                                    <Button layoutX="273.0" layoutY="11.0" mnemonicParsing="false" onAction="#onHistoryButton" styleClass="simple_button" text="History" AnchorPane.rightAnchor="49.0" AnchorPane.topAnchor="10.0">
+                                       <graphic>
+                                          <ImageView fitHeight="18.0" fitWidth="33.0" pickOnBounds="true" preserveRatio="true">
+                                             <image>
+                                                <Image url="@../icons/baseline_bar_chart_white_24.png" />
+                                             </image>
+                                          </ImageView>
+                                       </graphic>
+                                       <cursor>
+                                          <Cursor fx:constant="HAND" />
+                                       </cursor>
+                                    </Button>
+                                    <Button layoutX="358.0" layoutY="12.0" mnemonicParsing="false" onAction="#onRefreshButton" styleClass="simple_button" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                       <graphic>
+                                          <ImageView fitHeight="18.0" fitWidth="37.0" pickOnBounds="true" preserveRatio="true">
+                                             <image>
+                                                <Image url="@../icons/baseline_refresh_white_24.png" />
+                                             </image>
+                                          </ImageView>
+                                       </graphic>
+                                       <cursor>
+                                          <Cursor fx:constant="HAND" />
+                                       </cursor>
+                                    </Button>
+                                 </children>
+                              </AnchorPane>
+                        </content>
+                      </Tab>
+                      <Tab text="Output Attributes">
+                        <content>
+                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                 <children>
+                                    <Text fx:id="outputTitleText" strokeType="OUTSIDE" strokeWidth="0.0" text="Output Attribute List" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                       <font>
+                                          <Font name="System Bold" size="15.0" />
+                                       </font>
+                                    </Text>
+                                    <TableView fx:id="outputTableView" layoutX="58.0" layoutY="65.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0">
+                                      <columns>
+                                        <TableColumn fx:id="outputIdColumn" minWidth="40.0" prefWidth="40.0" resizable="false" text="ID" />
+                                        <TableColumn fx:id="outputNameColumn" minWidth="100.0" prefWidth="126.0" text="Name" />
+                                          <TableColumn fx:id="outputTypeColumn" minWidth="100.0" prefWidth="120.0" resizable="false" text="Type" />
+                                          <TableColumn fx:id="outputActionColumn" minWidth="200.0" prefWidth="282.0" resizable="false" text="Action" />
+                                      </columns>
+                                       <columnResizePolicy>
+                                          <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                       </columnResizePolicy>
+                                    </TableView>
+                                 </children>
+                              </AnchorPane>
+                        </content>
+                      </Tab>
+                    </tabs>
+                  </TabPane>
+               </children>
+            </AnchorPane>
+         </children>
+      </AnchorPane>
+   </children>
+</StackPane>

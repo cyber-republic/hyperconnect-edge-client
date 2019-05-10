@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="400.0" prefWidth="640.0" style="-fx-background-color: #EDF2F4;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyper.connect.controller.HelpController">
+   <children>
+      <Text layoutX="282.0" layoutY="206.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Help" AnchorPane.bottomAnchor="190.2353515625" AnchorPane.leftAnchor="282.0" AnchorPane.rightAnchor="281.43994140625" AnchorPane.topAnchor="189.8134765625">
+         <font>
+            <Font name="System Bold" size="15.0" />
+         </font>
+      </Text>
+   </children>
+</AnchorPane>

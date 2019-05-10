@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane fx:id="notificationsPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyper.connect.controller.NotificationsController">
+   <children>
+      <AnchorPane prefHeight="400.0" prefWidth="640.0" style="-fx-background-color: #EDF2F4;" stylesheets="@../styles/custom_styles.css">
+         <children>
+            <AnchorPane prefHeight="200.0" prefWidth="200.0" styleClass="pane_background" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+               <children>
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Notification List" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                     <font>
+                        <Font name="System Bold" size="15.0" />
+                     </font>
+                  </Text>
+                  <TableView fx:id="notificationListTableView" prefHeight="276.0" prefWidth="600.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0">
+                    <columns>
+                      <TableColumn fx:id="idColumn" maxWidth="1.7976931348623157E308" minWidth="-1.0" prefWidth="40.0" resizable="false" text="ID" />
+                      <TableColumn fx:id="typeColumn" maxWidth="1.7976931348623157E308" minWidth="-1.0" prefWidth="50.0" text="Type" />
+                        <TableColumn fx:id="categoryColumn" maxWidth="1.7976931348623157E308" minWidth="-1.0" text="Category" />
+                        <TableColumn fx:id="dateTimeColumn" maxWidth="1.7976931348623157E308" minWidth="-1.0" prefWidth="150.0" text="Date and Time" />
+                        <TableColumn fx:id="messageColumn" maxWidth="1.7976931348623157E308" minWidth="280.0" prefWidth="280.0" text="Message" />
+                    </columns>
+                  </TableView>
+                  <HBox alignment="CENTER_RIGHT" layoutX="394.0" layoutY="4.0" prefHeight="25.0" prefWidth="438.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                     <children>
+                        <Label text="Type: " />
+                        <ChoiceBox fx:id="typeChoiceBox" prefWidth="100.0" />
+                        <Label text="Category: ">
+                           <HBox.margin>
+                              <Insets left="20.0" />
+                           </HBox.margin>
+                        </Label>
+                        <ChoiceBox fx:id="categoryChoiceBox" prefWidth="100.0" />
+                     </children>
+                  </HBox>
+               </children>
+            </AnchorPane>
+         </children>
+      </AnchorPane>
+   </children>
+</StackPane>

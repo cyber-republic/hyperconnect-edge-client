@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane fx:id="dashboardPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyper.connect.controller.DashboardController">
+   <children>
+      <AnchorPane prefHeight="400.0" prefWidth="640.0" style="-fx-background-color: #EDF2F4;" stylesheets="@../styles/custom_styles.css">
+         <children>
+            <AnchorPane layoutX="376.0" layoutY="248.0" prefHeight="70.0" prefWidth="112.0" styleClass="pane_background" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+               <children>
+                  <HBox alignment="CENTER" layoutX="32.0" layoutY="35.0" prefHeight="0.0" prefWidth="65.0" spacing="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="2.0">
+                     <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Carrier">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Text>
+                     </children>
+                  </HBox>
+                  <HBox fx:id="disconnectedHbox" alignment="CENTER" layoutY="26.0" prefHeight="0.0" prefWidth="65.0" spacing="3.0" AnchorPane.bottomAnchor="26.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="26.0">
+                     <children>
+                        <ImageView fitHeight="18.0" fitWidth="62.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../icons/baseline_device_hub_red_24.png" />
+                           </image>
+                        </ImageView>
+                        <Text fill="#cc0000" strokeType="OUTSIDE" strokeWidth="0.0" text="Disconnected" />
+                     </children>
+                  </HBox>
+                  <HBox fx:id="connectedHbox" alignment="CENTER" layoutX="10.0" layoutY="36.0" prefHeight="0.0" prefWidth="65.0" spacing="3.0" visible="false" AnchorPane.bottomAnchor="26.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="26.0">
+                     <children>
+                        <ImageView fitHeight="18.0" fitWidth="62.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../icons/baseline_device_hub_green_24.png" />
+                           </image>
+                        </ImageView>
+                        <Text fill="#007e33" strokeType="OUTSIDE" strokeWidth="0.0" text="Connected" />
+                     </children>
+                  </HBox>
+               </children>
+            </AnchorPane>
+            <AnchorPane layoutY="120.0" prefHeight="70.0" prefWidth="112.0" styleClass="pane_background" AnchorPane.leftAnchor="132.0" AnchorPane.topAnchor="10.0">
+               <children>
+                  <HBox alignment="CENTER" layoutX="32.0" layoutY="35.0" prefHeight="0.0" prefWidth="65.0" spacing="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="2.0">
+                     <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Attributes">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Text>
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER" layoutX="22.0" layoutY="25.0" prefHeight="0.0" prefWidth="65.0" spacing="10.0" AnchorPane.bottomAnchor="24.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
+                     <children>
+                        <Text fx:id="activeAttributeText" fill="#007e33" strokeType="OUTSIDE" strokeWidth="0.0" text="0">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Text>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="/">
+                           <font>
+                              <Font size="15.0" />
+                           </font>
+                        </Text>
+                        <Text fx:id="attributeText" strokeType="OUTSIDE" strokeWidth="0.0" text="0">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Text>
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER" layoutX="42.0" layoutY="45.0" prefHeight="0.0" prefWidth="65.0" spacing="10.0" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                     <children>
+                        <Text fill="#007e33" strokeType="OUTSIDE" strokeWidth="0.0" text="Active" />
+                     </children>
+                  </HBox>
+               </children>
+            </AnchorPane>
+            <AnchorPane layoutX="132.0" layoutY="120.0" prefHeight="70.0" prefWidth="112.0" styleClass="pane_background" AnchorPane.leftAnchor="254.0" AnchorPane.topAnchor="10.0">
+               <children>
+                  <HBox alignment="CENTER" layoutX="32.0" layoutY="35.0" prefHeight="0.0" prefWidth="65.0" spacing="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="2.0">
+                     <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Events">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Text>
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER" layoutX="22.0" layoutY="25.0" prefHeight="0.0" prefWidth="65.0" spacing="10.0" AnchorPane.bottomAnchor="24.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
+                     <children>
+                        <Text fx:id="activeEventText" fill="#007e33" strokeType="OUTSIDE" strokeWidth="0.0" text="0">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Text>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="/">
+                           <font>
+                              <Font size="15.0" />
+                           </font>
+                        </Text>
+                        <Text fx:id="eventText" strokeType="OUTSIDE" strokeWidth="0.0" text="0">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Text>
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER" layoutX="42.0" layoutY="45.0" prefHeight="0.0" prefWidth="65.0" spacing="10.0" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                     <children>
+                        <Text fill="#007e33" strokeType="OUTSIDE" strokeWidth="0.0" text="Active" />
+                     </children>
+                  </HBox>
+               </children>
+            </AnchorPane>
+            <AnchorPane layoutX="284.0" layoutY="130.0" prefHeight="70.0" prefWidth="112.0" styleClass="pane_background" AnchorPane.leftAnchor="376.0" AnchorPane.topAnchor="10.0">
+               <children>
+                  <HBox alignment="CENTER" layoutX="32.0" layoutY="35.0" prefHeight="0.0" prefWidth="65.0" spacing="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="2.0">
+                     <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Notifications">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Text>
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER" layoutX="22.0" layoutY="25.0" prefHeight="0.0" prefWidth="65.0" spacing="10.0" AnchorPane.bottomAnchor="24.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
+                     <children>
+                        <Text fx:id="successText" fill="#007e33" strokeType="OUTSIDE" strokeWidth="0.0" text="0">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Text>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="/">
+                           <font>
+                              <Font size="15.0" />
+                           </font>
+                        </Text>
+                        <Text fx:id="warningText" fill="#ff8800" strokeType="OUTSIDE" strokeWidth="0.0" text="0">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Text>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="/">
+                           <font>
+                              <Font size="15.0" />
+                           </font>
+                        </Text>
+                        <Text fx:id="errorText" fill="#cc0000" strokeType="OUTSIDE" strokeWidth="0.0" text="0">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Text>
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER" layoutX="42.0" layoutY="45.0" prefHeight="0.0" prefWidth="65.0" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+               </children>
+            </AnchorPane>
+            <AnchorPane layoutX="208.0" layoutY="238.0" prefHeight="70.0" prefWidth="112.0" styleClass="pane_background" AnchorPane.leftAnchor="498.0" AnchorPane.topAnchor="10.0">
+               <children>
+                  <HBox alignment="CENTER" layoutX="32.0" layoutY="35.0" prefHeight="0.0" prefWidth="65.0" spacing="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="2.0">
+                     <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Controllers">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Text>
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER" layoutX="22.0" layoutY="25.0" prefHeight="0.0" prefWidth="65.0" spacing="10.0" AnchorPane.bottomAnchor="24.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
+                     <children>
+                        <Text fx:id="activeControllerText" fill="#007e33" strokeType="OUTSIDE" strokeWidth="0.0" text="0">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Text>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="/">
+                           <font>
+                              <Font size="15.0" />
+                           </font>
+                        </Text>
+                        <Text fx:id="controllerText" strokeType="OUTSIDE" strokeWidth="0.0" text="0">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Text>
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER" layoutX="42.0" layoutY="45.0" prefHeight="0.0" prefWidth="65.0" spacing="10.0" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                     <children>
+                        <Text fill="#007e33" strokeType="OUTSIDE" strokeWidth="0.0" text="Active" />
+                     </children>
+                  </HBox>
+               </children>
+            </AnchorPane>
+            <AnchorPane layoutX="44.0" layoutY="118.0" prefHeight="200.0" prefWidth="200.0" styleClass="pane_background" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="90.0">
+               <children>
+                  <Text layoutX="65.0" layoutY="45.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Favorite Charts" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                     <font>
+                        <Font name="System Bold" size="15.0" />
+                     </font>
+                  </Text>
+                  <Pagination fx:id="pagination" layoutX="10.0" layoutY="36.0" maxPageIndicatorCount="5" pageCount="5" prefHeight="200.0" prefWidth="200.0" visible="false" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="30.0" />
+                  <HBox fx:id="placeholderHbox" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="There is no pinned chart." />
+                     </children>
+                  </HBox>
+               </children>
+            </AnchorPane>
+         </children></AnchorPane>
+   </children>
+</StackPane>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane fx:id="addEventPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyper.connect.controller.AddEventController">
+   <children>
+      <AnchorPane prefHeight="400.0" prefWidth="640.0" style="-fx-background-color: #EDF2F4;" stylesheets="@../styles/custom_styles.css">
+         <children>
+            <VBox prefHeight="200.0" prefWidth="100.0" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+               <children>
+                  <HBox alignment="CENTER" prefHeight="300.0" prefWidth="600.0" spacing="10.0">
+                     <children>
+                        <AnchorPane prefHeight="285.0" prefWidth="300.0" styleClass="pane_background" HBox.hgrow="ALWAYS">
+                           <children>
+                              <Text layoutX="14.0" layoutY="36.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Event Source" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                 <font>
+                                    <Font name="System Bold" size="15.0" />
+                                 </font>
+                              </Text>
+                              <VBox layoutX="20.0" layoutY="43.0" prefHeight="200.0" prefWidth="100.0" spacing="20.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
+                                 <children>
+                                    <HBox alignment="CENTER" prefHeight="1.0" prefWidth="285.0" spacing="10.0">
+                                       <children>
+                                          <Label text="Sensor:" />
+                                          <ChoiceBox fx:id="sourceSensorChoiceBox" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER" prefHeight="1.0" prefWidth="285.0" spacing="10.0">
+                                       <children>
+                                          <Label text="Attribute:" />
+                                          <ChoiceBox fx:id="sourceAttributeChoiceBox" disable="true" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER" prefHeight="1.0" prefWidth="285.0" spacing="10.0">
+                                       <children>
+                                          <Label text="Attribute Average:" />
+                                          <ChoiceBox fx:id="averageChoiceBox" disable="true" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER" prefHeight="1.0" prefWidth="285.0" spacing="10.0">
+                                       <children>
+                                          <Label text="Event Condition:" />
+                                          <ChoiceBox fx:id="conditionChoiceBox" disable="true" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER" prefHeight="1.0" prefWidth="285.0" spacing="10.0">
+                                       <children>
+                                          <Label text="Event Value:" />
+                                          <TextField fx:id="valueTextField" disable="true" prefHeight="25.0" prefWidth="167.0" promptText="Event Value (required)" />
+                                          <ChoiceBox fx:id="valueChoiceBox" disable="true" prefWidth="167.0" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                           </children>
+                        </AnchorPane>
+                        <AnchorPane prefHeight="285.0" prefWidth="300.0" styleClass="pane_background" HBox.hgrow="ALWAYS">
+                           <children>
+                              <Text layoutX="26.0" layoutY="27.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Event Action" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                 <font>
+                                    <Font name="System Bold" size="15.0" />
+                                 </font>
+                              </Text>
+                              <VBox layoutX="82.0" layoutY="54.0" prefHeight="200.0" prefWidth="100.0" spacing="20.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
+                                 <children>
+                                    <HBox alignment="CENTER" prefHeight="1.0" prefWidth="285.0" spacing="10.0">
+                                       <children>
+                                          <Label text="Sensor:" />
+                                          <ChoiceBox fx:id="actionSensorChoiceBox" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER" prefHeight="1.0" prefWidth="285.0" spacing="10.0">
+                                       <children>
+                                          <Label text="Attribute:" />
+                                          <ChoiceBox fx:id="actionAttributeChoiceBox" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER" prefHeight="1.0" prefWidth="285.0" spacing="10.0">
+                                       <children>
+                                          <Label text="Trigger Value:" />
+                                          <TextField fx:id="triggerValueTextField" disable="true" prefHeight="25.0" prefWidth="167.0" promptText="Event Trigger Value (required)" />
+                                          <ChoiceBox fx:id="triggerValueChoiceBox" disable="true" prefWidth="167.0" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                           </children>
+                        </AnchorPane>
+                     </children>
+                  </HBox>
+                  <AnchorPane prefHeight="100.0" prefWidth="600.0" styleClass="pane_background">
+                     <children>
+                        <Text layoutX="14.0" layoutY="27.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Event Parameters" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Text>
+                        <HBox alignment="CENTER_LEFT" layoutX="18.0" layoutY="39.0" prefHeight="28.0" prefWidth="385.0" spacing="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
+                           <children>
+                              <Label text="Name:" />
+                              <TextField fx:id="nameTextField" promptText="Enter Name (required)" />
+                              <Button mnemonicParsing="false" onAction="#onAddEvent" styleClass="simple_button" text="Add">
+                                 <cursor>
+                                    <Cursor fx:constant="HAND" />
+                                 </cursor>
+                                 <graphic>
+                                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../icons/baseline_add_white_24.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                           </children>
+                        </HBox>
+                     </children>
+                  </AnchorPane>
+               </children>
+            </VBox>
+         </children>
+      </AnchorPane>
+   </children>
+</StackPane>

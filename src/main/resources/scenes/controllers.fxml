@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane fx:id="controllersPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyper.connect.controller.ControllersController">
+   <children>
+      <AnchorPane prefHeight="400.0" prefWidth="640.0" style="-fx-background-color: #EDF2F4;" stylesheets="@../styles/custom_styles.css">
+         <children>
+            <VBox layoutX="121.0" layoutY="64.0" prefHeight="200.0" prefWidth="100.0" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+               <children>
+                  <HBox alignment="CENTER" prefHeight="171.0" prefWidth="620.0" spacing="10.0">
+                     <children>
+                        <AnchorPane prefHeight="171.0" prefWidth="458.0" styleClass="pane_background" HBox.hgrow="ALWAYS">
+                           <children>
+                              <Text layoutX="46.0" layoutY="41.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Connection Information" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                 <font>
+                                    <Font name="System Bold" size="15.0" />
+                                 </font>
+                              </Text>
+                              <HBox layoutX="10.0" layoutY="40.0" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0">
+                                 <children>
+                                    <ImageView fx:id="qrCodeImageView" fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true">
+                                       <HBox.margin>
+                                          <Insets />
+                                       </HBox.margin>
+                                    </ImageView>
+                                    <VBox layoutX="79.0" layoutY="49.0" prefHeight="116.0" prefWidth="100.0" spacing="5.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0" HBox.hgrow="ALWAYS">
+                                       <children>
+                                          <Text fill="RED" strokeType="OUTSIDE" strokeWidth="0.0" text="Extensive carrier funcionalities will be available with the Remote Controller release." />
+                                          <HBox prefHeight="0.0" prefWidth="200.0">
+                                             <children>
+                                                <Label text="Address: ">
+                                                   <font>
+                                                      <Font name="System Bold" size="12.0" />
+                                                   </font>
+                                                </Label>
+                                                <Text fx:id="addressText" strokeType="OUTSIDE" strokeWidth="0.0" text="DESzGnG35SXeSjfw12yQsQzrTBqqs6RUWbtfMMrpfMYxjPX3J516" />
+                                             </children>
+                                          </HBox>
+                                          <HBox prefHeight="0.0" prefWidth="200.0">
+                                             <children>
+                                                <Label text="User ID: ">
+                                                   <font>
+                                                      <Font name="System Bold" size="12.0" />
+                                                   </font>
+                                                </Label>
+                                                <Text fx:id="userIdText" strokeType="OUTSIDE" strokeWidth="0.0" text="6ZnAHHtnudzQgnHoS4xYXksUdHNGuRdHPCcDEe2wJCvT" />
+                                             </children>
+                                          </HBox>
+                                       </children>
+                                       <HBox.margin>
+                                          <Insets top="10.0" />
+                                       </HBox.margin>
+                                    </VBox>
+                                 </children>
+                              </HBox>
+                           </children>
+                        </AnchorPane>
+                     </children>
+                  </HBox>
+                  <AnchorPane prefHeight="200.0" prefWidth="200.0" styleClass="pane_background" VBox.vgrow="ALWAYS">
+                     <children>
+                        <Text layoutX="21.0" layoutY="31.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Controller List" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Text>
+                        <TableView fx:id="controllerListTableView" layoutX="21.0" layoutY="36.0" prefHeight="73.0" prefWidth="200.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0">
+                          <columns>
+                            <TableColumn fx:id="idColumn" minWidth="40.0" prefWidth="40.0" resizable="false" text="ID" />
+                            <TableColumn fx:id="userIdColumn" minWidth="320.0" prefWidth="320.0" text="User ID" />
+                              <TableColumn fx:id="stateColumn" minWidth="90.0" prefWidth="90.0" text="State" />
+                              <TableColumn fx:id="actionsColumn" minWidth="140.0" prefWidth="140.0" text="Actions" />
+                          </columns>
+                           <columnResizePolicy>
+                              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                           </columnResizePolicy>
+                        </TableView>
+                     </children>
+                  </AnchorPane>
+               </children>
+            </VBox>
+         </children>
+      </AnchorPane>
+   </children>
+</StackPane>

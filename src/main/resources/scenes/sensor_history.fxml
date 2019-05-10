@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane fx:id="sensorHistoryPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyper.connect.controller.SensorHistoryController">
+   <children>
+      <AnchorPane prefHeight="400.0" prefWidth="640.0" style="-fx-background-color: #EDF2F4;" stylesheets="@../styles/custom_styles.css">
+         <children>
+            <AnchorPane layoutX="160.0" layoutY="83.0" prefHeight="200.0" prefWidth="200.0" styleClass="pane_background" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+               <children>
+                  <Text fx:id="titleText" layoutX="94.0" layoutY="65.0" strokeType="OUTSIDE" strokeWidth="0.0" text="History of Sensor" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                     <font>
+                        <Font name="System Bold" size="15.0" />
+                     </font>
+                  </Text>
+                  <HBox layoutX="82.0" layoutY="115.0" prefHeight="0.0" prefWidth="600.0" spacing="3.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0">
+                     <children>
+                        <ChoiceBox fx:id="attributeChoiceBox" prefWidth="150.0" />
+                        <ChoiceBox fx:id="windowChoiceBox" prefWidth="100.0" />
+                        <ChoiceBox fx:id="averageChoiceBox" prefWidth="100.0" />
+                        <ChoiceBox fx:id="monthChoiceBox" prefWidth="150.0" visible="false" />
+                        <DatePicker fx:id="datePicker" prefWidth="100.0" />
+                        <ChoiceBox fx:id="hourChoiceBox" prefWidth="70.0" />
+                        <Button mnemonicParsing="false" onAction="#onViewButton" styleClass="simple_button" text="View">
+                           <graphic>
+                              <ImageView fitHeight="18.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../icons/baseline_youtube_searched_for_white_24.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </Button>
+                     </children>
+                  </HBox>
+                  <LineChart fx:id="lineChart" layoutX="23.0" layoutY="78.0" prefHeight="288.0" prefWidth="561.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="80.0">
+                    <xAxis>
+                      <CategoryAxis side="BOTTOM" />
+                    </xAxis>
+                    <yAxis>
+                      <NumberAxis side="LEFT" />
+                    </yAxis>
+                  </LineChart>
+                  <TableView fx:id="tableView" prefHeight="200.0" prefWidth="200.0" visible="false" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="80.0">
+                    <columns>
+                      <TableColumn fx:id="valueColumn" prefWidth="75.0" text="Value" />
+                      <TableColumn fx:id="dateTimeColumn" prefWidth="75.0" text="Date and Time" />
+                    </columns>
+                     <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                     </columnResizePolicy>
+                  </TableView>
+                  <HBox alignment="CENTER_RIGHT" layoutX="245.0" layoutY="5.0" prefHeight="25.0" prefWidth="261.0" spacing="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+                     <children>
+                        <Button fx:id="chartButton" mnemonicParsing="false" onAction="#onChartButton" styleClass="simple_button" text="Chart">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                           <graphic>
+                              <ImageView fitHeight="16.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../icons/baseline_show_chart_white_24.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                        <Button fx:id="tableButton" mnemonicParsing="false" onAction="#onTableButton" styleClass="simple_button" text="Table">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                           <graphic>
+                              <ImageView fitHeight="16.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../icons/baseline_table_chart_white_24.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                        <Button fx:id="favoriteButton" mnemonicParsing="false" onAction="#onFavorite" style="-fx-background-color: transparent;">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                           <graphic>
+                              <ImageView fx:id="favoriteImageView" fitHeight="24.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../icons/baseline_star_border_blue_24.png" />
+                                 </image>
+                                 <cursor>
+                                    <Cursor fx:constant="DEFAULT" />
+                                 </cursor>
+                              </ImageView>
+                           </graphic>
+                           <padding>
+                              <Insets top="1.0" />
+                           </padding>
+                        </Button>
+                     </children>
+                  </HBox>
+               </children></AnchorPane>
+         </children>
+      </AnchorPane>
+   </children>
+</StackPane>

@@ -1,0 +1,95 @@
+.pane_background{
+	-fx-background-color:  #ffffff;
+	-fx-background-radius:  5;
+	-fx-effect:  dropshadow(three-pass-box, rgba(0,0,0,0.5), 5, 0, 0, 0);
+}
+
+.table-column{
+  -fx-alignment: CENTER;
+}
+
+.custom_button{
+    -fx-font-size: 12px;
+	-fx-background-color: #B9314F;
+	-fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-border: none;
+}
+
+.custom_button:hover{
+	-fx-background-color: rgba(0,0,0,0.30);
+}
+
+.custom_button_selected{
+	-fx-background-color: rgba(0,0,0,0.30);
+}
+
+/*
+.custom_button:focused{
+	-fx-background-color: rgba(0,0,0,0.30);
+}*/
+
+.breadcrumb_link{
+	-fx-text-fill: white;
+	-fx-underline: false;
+	-fx-border-color: transparent;
+	-fx-font-weight: bold;
+}
+
+.breadcrumb_link:hover{
+	-fx-underline: true;
+}
+
+.simple_button{
+	-fx-background-color: #2b2d42;
+	-fx-text-fill: white;
+}
+
+.simple_button:pressed{
+	-fx-background-color: rgba(0,0,0,0.50);
+}
+
+.accept_button{
+	-fx-background-color: #007E33;
+	-fx-text-fill: white;
+}
+
+.accept_button:pressed{
+	-fx-background-color: rgba(0,0,0,0.50);
+}
+
+.decline_button{
+	-fx-background-color: #CC0000;
+	-fx-text-fill: white;
+}
+
+.decline_button:pressed{
+	-fx-background-color: rgba(0,0,0,0.50);
+}
+
+.jfx-snackbar-toast {
+    -fx-text-fill: white;
+	-fx-font-weight: bold;
+}
+
+.success_strip{
+	-fx-background-color: #007E33;
+	-fx-background-radius:  5;
+}
+
+.warning_strip{
+	-fx-background-color: #FF8800;
+	-fx-background-radius:  5;
+}
+
+.error_strip{
+	-fx-background-color: #CC0000;
+	-fx-background-radius:  5;
+}
+
+
+
+
+
+
+
