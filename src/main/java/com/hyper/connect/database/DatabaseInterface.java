@@ -1,13 +1,8 @@
 package com.hyper.connect.database;
 
-import com.hyper.connect.model.Sensor;
-import com.hyper.connect.model.Attribute;
-import com.hyper.connect.model.Event;
-import com.hyper.connect.model.Controller;
-import com.hyper.connect.model.DataRecord;
-import com.hyper.connect.model.Notification;
-import com.hyper.connect.model.Setting;
-import com.hyper.connect.model.PinnedChart;
+import com.hyper.connect.model.*;
+import com.hyper.connect.model.enums.*;
+
 import java.util.ArrayList;
 
 
@@ -35,33 +30,39 @@ public interface DatabaseInterface{
 	
 	public ArrayList<Attribute> getAttributeListBySensorId(int sensorId);
 	
-	public ArrayList<Attribute> getAttributeListBySensorIdAndDirection(int sensorId, String direction);
+	public ArrayList<Attribute> getAttributeListBySensorIdAndDirection(int sensorId, AttributeDirection direction);
 	
-	public ArrayList<Attribute> getActiveAttributeListBySensorIdAndDirection(int sensorId, String direction);
+	public ArrayList<Attribute> getActiveAttributeListBySensorIdAndDirection(int sensorId, AttributeDirection direction);
 	
-	public ArrayList<Attribute> getValidAttributeListBySensorIdAndDirection(int sensorId, String direction);
+	public ArrayList<Attribute> getValidAttributeListBySensorIdAndDirection(int sensorId, AttributeDirection direction);
 	
 	public ArrayList<Attribute> getAttributeList();
 	
 	public int getAttributeCount();
 	
-	public int getAttributeCountByState(String state);
+	public int getAttributeCountByState(AttributeState state);
 	
 	
 	
 	public Event saveEvent(Event event);
 	
 	public boolean updateEvent(Event event);
+
+	public boolean setEventListState(EventState state);
 	
-	public boolean setEventStateByEventId(int eventId, String state);
+	public boolean setEventStateByEventId(int eventId, EventState state);
 	
 	public boolean deleteEventByEventId(int eventId);
 	
 	public Event getEventByEventId(int eventId);
+
+	public Event getEventByGlobalEventId(String globalEventId);
 	
-	public ArrayList<Event> getActiveEventListByAverageAndSourceAttributeId(String average, int sourceAttributeId);
+	public ArrayList<Event> getActiveEventListByAverageAndSourceAttributeId(EventAverage average, int sourceAttributeId);
 	
 	public ArrayList<Event> getEventList();
+
+	public ArrayList<Event> getEventListByType(EventType type);
 	
 	public ArrayList<Event> getEventListOnlyNameAndIdByAttributeId(int attributeId);
 	
@@ -69,7 +70,7 @@ public interface DatabaseInterface{
 	
 	public int getEventCount();
 	
-	public int getEventCountByState(String state);
+	public int getEventCountByState(EventState state);
 	
 	
 	
@@ -84,6 +85,8 @@ public interface DatabaseInterface{
 	public Controller getControllerByUserId(String userId);
 	
 	public ArrayList<Controller> getControllerList();
+
+	public ArrayList<Controller> getOnlineControllerList();
 	
 	public int getControllerCount();
 	
@@ -123,10 +126,28 @@ public interface DatabaseInterface{
 	
 	public PinnedChart getPinnedChartByAttributeId(int attributeId);
 	
-	public PinnedChart getPinnedChartByParameters(int attributeId, String window, String average);
+	public PinnedChart getPinnedChartByParameters(int attributeId, PinnedChartWindow window, EventAverage average);
 	
 	public ArrayList<PinnedChart> getPinnedChartList();
 	
 	public ArrayList<PinnedChart> getPinnedChartListByAttributeId(int attributeId);
+
+
+
+	public Device saveDevice(Device device);
+
+	public boolean updateDevice(Device device);
+
+	public boolean setDeviceListConnectionState(DeviceConnectionState connectionState);
+
+	public boolean deleteDeviceByDeviceId(int deviceId);
+
+	public Device getDeviceByDeviceId(int deviceId);
+
+	public Device getDeviceByUserId(String userId);
+
+	public ArrayList<Device> getDeviceList();
+
+	public ArrayList<Device> getOnlineDeviceList();
 	
 }

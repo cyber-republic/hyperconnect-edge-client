@@ -1,7 +1,9 @@
 package com.hyper.connect.management;
 
 import com.hyper.connect.database.DatabaseInterface;
+import com.hyper.connect.elastos.ElastosCarrier;
 import com.hyper.connect.model.Attribute;
+import com.hyper.connect.model.enums.AttributeState;
 import com.hyper.connect.model.DataRecord;
 import com.hyper.connect.management.concurrent.AttributeThread;
 
@@ -9,46 +11,53 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import com.google.gson.JsonObject;
+import com.hyper.connect.model.enums.EventAverage;
+
 import java.util.ConcurrentModificationException;
 
 
 public class AttributeManagement{
+	private ElastosCarrier elastosCarrier;
 	private DatabaseInterface database;
 	private ScriptManagement scriptManager;
 	private Map<Integer, Attribute> attributeMap;
 	private Map<Integer, AttributeThread> attributeThreadMap;
 	
-	public AttributeManagement(DatabaseInterface database, ScriptManagement scriptManager){
+	public AttributeManagement(ElastosCarrier elastosCarrier, DatabaseInterface database, ScriptManagement scriptManager){
+		this.elastosCarrier=elastosCarrier;
 		this.database=database;
 		this.scriptManager=scriptManager;
 		this.attributeMap=new HashMap<Integer, Attribute>();
 		this.attributeThreadMap=new HashMap<Integer, AttributeThread>();
 		this.startActives();
 	}
-	
+
+	public ElastosCarrier getElastosCarrier(){
+		return elastosCarrier;
+	}
+
 	public DatabaseInterface getDatabase(){
-		return this.database;
+		return database;
 	}
 	
 	public ScriptManagement getScriptManager(){
-		return this.scriptManager;
+		return scriptManager;
 	}
 	
 	public void startActives(){
-		ArrayList<Attribute> attributeList=this.database.getAttributeList();
-		for(int j=0;j<attributeList.size();j++){
-			Attribute attribute=attributeList.get(j);
-			this.attributeMap.put(attribute.getId(), attribute);
-			if(attribute.getState().equals("active")){
-				this.startAttribute(attribute.getId());
+		ArrayList<Attribute> attributeList=database.getAttributeList();
+		for(Attribute attribute : attributeList){
+			attributeMap.put(attribute.getId(), attribute);
+			if(attribute.getState()==AttributeState.ACTIVE){
+				startAttribute(attribute.getId());
 			}
 		}
 	}
 	
 	public void stopAll(){
 		try{
-			for(Map.Entry<Integer, AttributeThread> entry : this.attributeThreadMap.entrySet()){
-				this.stopAttribute(entry.getKey());
+			for(Map.Entry<Integer, AttributeThread> entry : attributeThreadMap.entrySet()){
+				stopAttribute(entry.getKey());
 			}
 			attributeThreadMap.clear();
 		}
@@ -56,17 +65,17 @@ public class AttributeManagement{
 	}
 	
 	public void addAttribute(Attribute attribute){
-		this.attributeMap.put(attribute.getId(), attribute);
+		attributeMap.put(attribute.getId(), attribute);
 	}
 	
 	public void deleteAttribute(int id){
-		AttributeThread attributeThread=this.attributeThreadMap.get(id);
+		AttributeThread attributeThread=attributeThreadMap.get(id);
 		if(attributeThread!=null){
 			//attributeThread.interrupt();
 			attributeThread.stopThread();
 		}
-		this.attributeMap.remove(id);
-		this.attributeThreadMap.remove(id);
+		attributeMap.remove(id);
+		attributeThreadMap.remove(id);
 	}
 	
 	public void startAttribute(int id){
@@ -74,9 +83,8 @@ public class AttributeManagement{
 		if(attribute!=null){
 			AttributeThread attributeThread=new AttributeThread(attribute, this);
 			attributeThread.start();
-			this.attributeThreadMap.put(id, attributeThread);
+			attributeThreadMap.put(id, attributeThread);
 		}
-		attribute.setState("active");
 	}
 	
 	public void stopAttribute(int id){
@@ -89,8 +97,7 @@ public class AttributeManagement{
 			}
 			catch(InterruptedException ie){}*/
 		}
-		this.attributeThreadMap.remove(id);
-		this.attributeMap.get(id).setState("deactivated");
+		attributeThreadMap.remove(id);
 	}
 	
 	public void updateAttributeInterval(int id){
@@ -99,8 +106,8 @@ public class AttributeManagement{
 		this.startAttribute(id);*/
 	}
 	
-	public void updateEventState(int id, String average){
-		AttributeThread attributeThread=this.attributeThreadMap.get(id);
+	public void updateEventState(int id, EventAverage average){
+		AttributeThread attributeThread=attributeThreadMap.get(id);
 		if(attributeThread!=null){
 			attributeThread.updateEventState(average);
 		}
@@ -108,11 +115,11 @@ public class AttributeManagement{
 	
 	public boolean executeAction(int id, String triggerValue){
 		boolean response=false;
-		Attribute attribute=this.attributeMap.get(id);
+		Attribute attribute=attributeMap.get(id);
 		if(attribute!=null){
-			if(attribute.getState().equals("active")){
+			if(attribute.getState()==AttributeState.ACTIVE){
 				String filename=id+".py";
-				JsonObject resultObject=this.scriptManager.executePythonFileWithParameter(filename, triggerValue);
+				JsonObject resultObject=scriptManager.executePythonFileWithParameter(filename, triggerValue);
 				String error=resultObject.get("error").getAsString();
 				if(error.isEmpty()){
 					response=true;
@@ -124,7 +131,7 @@ public class AttributeManagement{
 	
 	public DataRecord getCurrentDataRecord(int id){
 		DataRecord dataRecord=null;
-		AttributeThread attributeThread=this.attributeThreadMap.get(id);
+		AttributeThread attributeThread=attributeThreadMap.get(id);
 		if(attributeThread!=null){
 			dataRecord=attributeThread.getCurrentDataRecord();
 		}

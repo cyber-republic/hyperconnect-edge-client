@@ -1,10 +1,13 @@
 package com.hyper.connect.controller;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.hyper.connect.App;
-import com.hyper.connect.model.Sensor;
-import com.hyper.connect.model.Attribute;
-import com.hyper.connect.model.Event;
+import com.hyper.connect.model.*;
 
+import com.hyper.connect.model.enums.*;
+import com.hyper.connect.util.CustomUtil;
 import javafx.fxml.FXML;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
@@ -25,8 +28,8 @@ public class AddEventController{
 	private Sensor sourceSensor=null;
 	private ArrayList<Attribute> sourceAttributeList=null;
 	private Attribute sourceAttribute=null;
-	private String average="";
-	private String condition="";
+	private EventAverage average=null;
+	private EventCondition condition=null;
 	private String conditionValue="";
 	
 	private ArrayList<Sensor> actionSensorList=null;
@@ -80,7 +83,7 @@ public class AddEventController{
 		ArrayList<Sensor> newSensorList=new ArrayList<Sensor>();
 		for(int i=0;i<sensorList.size();i++){
 			Sensor sensor=sensorList.get(i);
-			ArrayList<Attribute> attributeList=this.app.getDatabase().getValidAttributeListBySensorIdAndDirection(sensor.getId(), "input");
+			ArrayList<Attribute> attributeList=this.app.getDatabase().getValidAttributeListBySensorIdAndDirection(sensor.getId(), AttributeDirection.INPUT);
 			if(!attributeList.isEmpty()){
 				sensor.setAttributeList(attributeList);
 				newSensorList.add(sensor);
@@ -94,7 +97,7 @@ public class AddEventController{
 		ArrayList<Sensor> newSensorList=new ArrayList<Sensor>();
 		for(int i=0;i<sensorList.size();i++){
 			Sensor sensor=sensorList.get(i);
-			ArrayList<Attribute> attributeList=this.app.getDatabase().getValidAttributeListBySensorIdAndDirection(sensor.getId(), "output");
+			ArrayList<Attribute> attributeList=this.app.getDatabase().getValidAttributeListBySensorIdAndDirection(sensor.getId(), AttributeDirection.OUTPUT);
 			if(!attributeList.isEmpty()){
 				sensor.setAttributeList(attributeList);
 				newSensorList.add(sensor);
@@ -239,7 +242,7 @@ public class AddEventController{
 		this.averageChoiceBox.setDisable(false);
 		this.averageChoiceBox.getItems().clear();
 		
-		if(this.sourceAttribute.getType().equals("string") || this.sourceAttribute.getType().equals("boolean")){
+		if(this.sourceAttribute.getType()==AttributeType.STRING || this.sourceAttribute.getType()==AttributeType.BOOLEAN){
 			this.averageChoiceBox.getItems().addAll("-- Select Average --", "Real-Time");
 		}
 		else{
@@ -258,30 +261,7 @@ public class AddEventController{
 			int averageIndex=(Integer)number2;
 			if(averageIndex!=0){
 				String value=(String)averageChoiceBox.getItems().get((Integer)number2);
-				if(value.equals("Real-Time")){
-					average="real-time";
-				}
-				else if(value.equals("1 Minute")){
-					average="1m";
-				}
-				else if(value.equals("5 Minutes")){
-					average="5m";
-				}
-				else if(value.equals("15 Minutes")){
-					average="15m";
-				}
-				else if(value.equals("1 Hour")){
-					average="1h";
-				}
-				else if(value.equals("3 Hours")){
-					average="3h";
-				}
-				else if(value.equals("6 Hours")){
-					average="6h";
-				}
-				else if(value.equals("1 Day")){
-					average="1d";
-				}
+				average=getEventAverageByString(value);
 				initCondition();
 			}
 		}
@@ -291,7 +271,7 @@ public class AddEventController{
 		this.conditionChoiceBox.setDisable(false);
 		this.conditionChoiceBox.getItems().clear();
 		this.conditionChoiceBox.getItems().addAll("-- Select Condition --", "equal to", "not equal to");
-		if(!this.sourceAttribute.getType().equals("string") && !this.sourceAttribute.getType().equals("boolean")){
+		if(this.sourceAttribute.getType()!=AttributeType.STRING && this.sourceAttribute.getType()!=AttributeType.BOOLEAN){
 			this.conditionChoiceBox.getItems().addAll("greater than", "less than");
 		}
 		this.conditionChoiceBox.getSelectionModel().selectFirst();
@@ -305,14 +285,14 @@ public class AddEventController{
 			int conditionIndex=(Integer)number2;
 			if(conditionIndex!=0){
 				String value=(String)conditionChoiceBox.getItems().get((Integer)number2);
-				condition=value;
+				condition=getEventConditionByString(value);
 				initValue();
 			}
 		}
 	};
 	
 	private void initValue(){
-		if(this.sourceAttribute.getType().equals("boolean")){
+		if(this.sourceAttribute.getType()==AttributeType.BOOLEAN){
 			this.valueTextField.setVisible(false);
 			this.valueTextField.setManaged(false);
 			this.valueTextField.setDisable(true);
@@ -409,7 +389,7 @@ public class AddEventController{
 	};
 	
 	private void initTriggerValue(){
-		if(this.actionAttribute.getType().equals("boolean")){
+		if(this.actionAttribute.getType()==AttributeType.BOOLEAN){
 			this.triggerValueTextField.setVisible(false);
 			this.triggerValueTextField.setManaged(false);
 			this.triggerValueTextField.setDisable(true);
@@ -498,11 +478,17 @@ public class AddEventController{
 			Task addTask=new Task<Void>(){
 				@Override
 				public Void call(){
-					Event newEvent=new Event(0, name, "deactivated", average, condition, conditionValue, triggerValue, sourceSensor.getId(), sourceAttribute.getId(), actionSensor.getId(), actionAttribute.getId());
-					Event event=app.getDatabase().saveEvent(newEvent);
-					if(event!=null){
+					String deviceUserId=app.getElastosCarrier().getUserId();
+					String globalEventId=CustomUtil.getRandomGlobalEventId();
+					Event newEvent=app.getDatabase().saveEvent(new Event(0, globalEventId, name, EventType.LOCAL, EventState.DEACTIVATED, average, condition, conditionValue, triggerValue, deviceUserId, sourceSensor.getId(), sourceAttribute.getId(), deviceUserId, actionSensor.getId(), actionAttribute.getId(), EventEdgeType.SOURCE_AND_ACTION));
+					if(newEvent!=null){
 						Platform.runLater(() -> app.setEventsLayout());
-						app.showMessageStripAndSave("Success", "Event", "Event '"+event.getName()+" ("+event.getId()+")' has been added.", addEventPane);
+						app.showMessageStripAndSave("Success", "Event", "Event '"+newEvent.getName()+" ("+newEvent.getId()+")' has been added.", addEventPane);
+						JsonElement jsonEvent=new Gson().toJsonTree(newEvent);
+						JsonObject jsonObject=new JsonObject();
+						jsonObject.addProperty("command", "addEvent");
+						jsonObject.add("sensor", jsonEvent);
+						app.getElastosCarrier().sendDataToControllers(jsonObject);
 					}
 					else{
 						app.showMessageStripAndSave("Error", "Event", "Sorry, something went wrong adding the event '"+newEvent.getName()+"'.", addEventPane);
@@ -512,6 +498,52 @@ public class AddEventController{
 			};
 			this.app.executeAsyncTask(addTask, addEventPane);
 		}
+	}
+
+	private EventCondition getEventConditionByString(String stringCondition){
+		EventCondition eventCondition=null;
+		if(stringCondition.equals("equal to")){
+			eventCondition=EventCondition.EQUAL_TO;
+		}
+		else if(stringCondition.equals("not equal to")){
+			eventCondition=EventCondition.NOT_EQUAL_TO;
+		}
+		else if(stringCondition.equals("greater than")){
+			eventCondition=EventCondition.GREATER_THAN;
+		}
+		else if(stringCondition.equals("less than")){
+			eventCondition=EventCondition.LESS_THAN;
+		}
+		return eventCondition;
+	}
+
+	private EventAverage getEventAverageByString(String stringAverge){
+		EventAverage eventAverage=null;
+		if(stringAverge.equals("Real-Time")){
+			eventAverage=EventAverage.REAL_TIME;
+		}
+		else if(stringAverge.equals("1 Minute")){
+			eventAverage=EventAverage.ONE_MINUTE;
+		}
+		else if(stringAverge.equals("5 Minutes")){
+			eventAverage=EventAverage.FIVE_MINUTES;
+		}
+		else if(stringAverge.equals("15 Minutes")){
+			eventAverage=EventAverage.FIFTEEN_MINUTES;
+		}
+		else if(stringAverge.equals("1 Hour")){
+			eventAverage=EventAverage.ONE_HOUR;
+		}
+		else if(stringAverge.equals("3 Hours")){
+			eventAverage=EventAverage.THREE_HOURS;
+		}
+		else if(stringAverge.equals("6 Hours")){
+			eventAverage=EventAverage.SIX_HOURS;
+		}
+		else if(stringAverge.equals("1 Day")){
+			eventAverage=EventAverage.ONE_DAY;
+		}
+		return eventAverage;
 	}
 }
 

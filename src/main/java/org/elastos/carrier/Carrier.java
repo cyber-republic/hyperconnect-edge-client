@@ -62,9 +62,15 @@ public class Carrier {
 	private boolean didKill = false;
 	private Hashtable<String, Group> groups = new Hashtable<>();
 
-	/*static {
-		System.loadLibrary("carrierjni");
-	}*/
+	static{
+		String osName=System.getProperty("os.name");
+		if(osName.equals("Linux") || osName.contains("Mac")){
+			System.loadLibrary("carrierjni");
+		}
+		else if(osName.contains("Windows")){
+			System.loadLibrary("libcarrierjni");
+		}
+	}
 
 	private static class Callbacks {
 		private List<FriendInfo> friends;

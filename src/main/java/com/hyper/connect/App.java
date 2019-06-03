@@ -1,5 +1,7 @@
 package com.hyper.connect;
 
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import com.hyper.connect.database.DatabaseInterface;
 import com.hyper.connect.database.DatabaseSQLite;
 import com.hyper.connect.controller.RootController;
@@ -15,13 +17,14 @@ import com.hyper.connect.controller.NotificationsController;
 import com.hyper.connect.controller.ControllersController;
 import com.hyper.connect.controller.SettingsController;
 import com.hyper.connect.controller.HelpController;
-import com.hyper.connect.model.Sensor;
-import com.hyper.connect.model.Attribute;
-import com.hyper.connect.model.Notification;
-import com.hyper.connect.model.Setting;
+import com.hyper.connect.model.*;
 import com.hyper.connect.management.ScriptManagement;
 import com.hyper.connect.management.AttributeManagement;
 import com.hyper.connect.elastos.ElastosCarrier;
+import com.hyper.connect.model.enums.ControllerConnectionState;
+import com.hyper.connect.model.enums.ControllerState;
+import com.hyper.connect.model.enums.DeviceConnectionState;
+import com.hyper.connect.model.enums.EventState;
 import com.hyper.connect.util.CustomUtil;
 
 import javafx.animation.KeyFrame;
@@ -57,7 +60,7 @@ import java.util.ArrayList;
 
 
 public class App extends Application{
-	public boolean DEBUG=true;
+	public boolean DEBUG=false;
 	private static ElastosCarrier elastosCarrier;
 	private DatabaseInterface database;
 	private ScriptManagement scriptManager;
@@ -95,20 +98,19 @@ public class App extends Application{
 	@Override
 	public void start(Stage primaryStage){
 		if(!DEBUG){
-			System.out.println("carrierstart");
-			this.elastosCarrier=new ElastosCarrier(this);
-			this.elastosCarrier.start();
+			elastosCarrier=new ElastosCarrier(this);
+			elastosCarrier.start();
 		}
-		this.database=new DatabaseSQLite("local.db");
-		this.scriptManager=new ScriptManagement();
-		this.attributeManager=new AttributeManagement(this.database, this.scriptManager);
+		database=new DatabaseSQLite("local.db");
+		scriptManager=new ScriptManagement();
+		attributeManager=new AttributeManagement(elastosCarrier, database, scriptManager);
 
-		Setting timeZoneSetting=this.database.getSettingByKey("timeZone");
+		Setting timeZoneSetting=database.getSettingByKey("timeZone");
 		if(timeZoneSetting==null){
 			timeZoneSetting=new Setting(0, "timeZone", "UTC");
-			this.database.saveSetting(timeZoneSetting);
+			database.saveSetting(timeZoneSetting);
 		}
-		this.timeZone=timeZoneSetting.getValue();
+		timeZone=timeZoneSetting.getValue();
 
 		this.primaryStage=primaryStage;
         this.primaryStage.setTitle("HyperConnect");
@@ -129,37 +131,40 @@ public class App extends Application{
 		this.initSettingsLayout();
 		this.initHelpLayout();
 		this.setDashboardLayout();
+
+		database.setDeviceListConnectionState(DeviceConnectionState.OFFLINE);
+		database.setEventListState(EventState.DEACTIVATED);
 	}
 
 	@Override
 	public void stop(){
-		this.attributeManager.stopAll();
+		attributeManager.stopAll();
 
 		if(!DEBUG){
-			this.elastosCarrier.kill();
+			elastosCarrier.kill();
 		}
 
 		Platform.exit();
 	}
 
 	public DatabaseInterface getDatabase(){
-		return this.database;
+		return database;
 	}
 
 	public ScriptManagement getScriptManager(){
-		return this.scriptManager;
+		return scriptManager;
 	}
 
 	public AttributeManagement getAttributeManager(){
-		return this.attributeManager;
+		return attributeManager;
 	}
 
 	public ElastosCarrier getElastosCarrier(){
-		return this.elastosCarrier;
+		return elastosCarrier;
 	}
 
 	public String getTimeZone(){
-		return this.timeZone;
+		return timeZone;
 	}
 
 	public boolean setTimeZone(String timeZone){
@@ -374,7 +379,7 @@ public class App extends Application{
 	public void setControllersLayout(){
 		this.rootScene.setCenter(this.controllersScene);
 		if(!DEBUG){
-			this.controllersController.init(this.elastosCarrier.getAddress(), this.elastosCarrier.getUserId());
+			this.controllersController.init(elastosCarrier.getAddress(), elastosCarrier.getUserId());
 		}
 		else{
 			this.controllersController.init("address", "userId");
@@ -701,22 +706,6 @@ public class App extends Application{
 		nodeList.add(settingsHbox);
 		this.rootController.setBreadcrumb(nodeList);
 	}
-
-	/*public void showMessageStrip(String type, String message){
-		this.rootController.showMessageStrip(type, message);
-	}
-
-	public void showMessageStripAndSave(String type, String category, String message){
-		String dateTime=CustomUtil.getCurrentDateTime();
-		Notification notification=new Notification(0, type, category, message, dateTime);
-		Notification newNotification=this.database.saveNotification(notification);
-		if(newNotification!=null){
-			this.rootController.showMessageStrip(type, message);
-		}
-		else{
-			this.rootController.showMessageStrip("Error", "Sorry, something went wrong.");
-		}
-	}*/
 
 	public void showMessageStrip(String type, String message, StackPane stackPane){
 		Platform.runLater(() -> {

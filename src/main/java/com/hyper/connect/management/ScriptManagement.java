@@ -1,6 +1,5 @@
 package com.hyper.connect.management;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -9,6 +8,7 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import com.google.gson.JsonObject;
+import com.hyper.connect.model.enums.AttributeType;
 import com.hyper.connect.util.CustomUtil;
 
 
@@ -32,7 +32,7 @@ public class ScriptManagement{
 		return content;
 	}
 	
-	public JsonObject validatePythonScript(String scriptName, String scriptContent, String attributeType){
+	public JsonObject validatePythonScript(String scriptName, String scriptContent, AttributeType attributeType){
 		String filename=this.createPythonFile(scriptName, scriptContent);
 		JsonObject jsonObject=this.executePythonFile(filename);
 		
@@ -57,7 +57,7 @@ public class ScriptManagement{
 		return jsonObject;
 	}
 	
-	public JsonObject validatePythonScriptWithParameter(String scriptName, String scriptContent, String attributeType, String parameter){
+	public JsonObject validatePythonScriptWithParameter(String scriptName, String scriptContent, AttributeType attributeType, String parameter){
 		boolean isParameterValid=this.checkValueWithType(parameter, attributeType);
 		JsonObject jsonObject=new JsonObject();
 		if(isParameterValid){
@@ -67,8 +67,8 @@ public class ScriptManagement{
 			String stringValue=jsonObject.get("result").getAsString();
 			String error=jsonObject.get("error").getAsString();
 			if(error.equals("")){
-				boolean typeValid=this.checkValueWithType(stringValue, "done");
-				if(typeValid){
+				boolean isScriptDone=this.checkScriptDone(stringValue);
+				if(isScriptDone){
 					jsonObject.addProperty("response", "Success");
 					jsonObject.addProperty("message", "The script has been successfully validated.");
 				}
@@ -203,11 +203,11 @@ public class ScriptManagement{
 		return sb.toString();
 	}
 	
-	private boolean checkValueWithType(String stringValue, String attributeType){
-		if(attributeType.equals("string")){
+	private boolean checkValueWithType(String stringValue, AttributeType attributeType){
+		if(attributeType==AttributeType.STRING){
 			return true;
 		}
-		else if(attributeType.equals("boolean")){
+		else if(attributeType==AttributeType.BOOLEAN){
 			if(stringValue.equals("True") || stringValue.equals("False")){
 				return true;
 			}
@@ -215,7 +215,7 @@ public class ScriptManagement{
 				return false;
 			}
 		}
-		else if(attributeType.equals("integer")){
+		else if(attributeType==AttributeType.INTEGER){
 			try{
 				int value=Integer.parseInt(stringValue);
 			}
@@ -223,7 +223,7 @@ public class ScriptManagement{
 				return false;
 			}
 		}
-		else if(attributeType.equals("double")){
+		else if(attributeType==AttributeType.DOUBLE){
 			try{
 				double value=Double.parseDouble(stringValue);
 			}
@@ -231,14 +231,15 @@ public class ScriptManagement{
 				return false;
 			}
 		}
-		else if(attributeType.equals("done")){
-			if(stringValue.equals("DONE")){
-				return true;
-			}
-			else{
-				return false;
-			}
-		}
 		return true;
+	}
+
+	private boolean checkScriptDone(String stringValue){
+		if(stringValue.equals("DONE")){
+			return true;
+		}
+		else{
+			return false;
+		}
 	}
 }

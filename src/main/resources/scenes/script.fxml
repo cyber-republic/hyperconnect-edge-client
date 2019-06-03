@@ -20,68 +20,76 @@
                   </Text>
                   <TextArea fx:id="codeTextArea" editable="false" layoutX="10.0" layoutY="87.0" prefHeight="234.0" prefWidth="600.0" AnchorPane.bottomAnchor="60.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="90.0" />
                   <ChoiceBox fx:id="templateChoiceBox" disable="true" layoutX="10.0" layoutY="49.0" prefHeight="25.0" prefWidth="200.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0" />
-                  <Label fx:id="parameterLabel" disable="true" layoutX="15.0" layoutY="54.0" text="Input Parameter:" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="55.0" />
-                  <TextField fx:id="parameterTextField" disable="true" layoutX="109.0" layoutY="52.0" AnchorPane.leftAnchor="102.0" AnchorPane.topAnchor="52.0" />
-                  <Button fx:id="editButton" layoutX="310.0" layoutY="335.0" mnemonicParsing="false" onAction="#onButtonEdit" styleClass="simple_button" text="Edit" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="10.0">
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                     <graphic>
-                        <ImageView fitHeight="18.0" fitWidth="38.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../icons/baseline_edit_white_24.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </Button>
-                  <Button fx:id="backButton" layoutX="304.0" layoutY="335.0" mnemonicParsing="false" onAction="#onButtonBack" styleClass="simple_button" text="Back to Attribute List" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="79.0">
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                     <graphic>
-                        <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../icons/baseline_arrow_back_ios_white_24.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </Button>
-                  <Button fx:id="validateButton" layoutX="431.0" layoutY="335.0" mnemonicParsing="false" onAction="#onButtonValidate" styleClass="simple_button" text="Validate" visible="false" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="10.0">
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                     <graphic>
-                        <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../icons/baseline_verified_user_white_24.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </Button>
-                  <Button fx:id="saveButton" layoutX="492.0" layoutY="335.0" mnemonicParsing="false" onAction="#onButtonSave" styleClass="simple_button" text="Save" visible="false" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="101.0">
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                     <graphic>
-                        <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../icons/baseline_save_white_24.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </Button>
-                  <Button fx:id="cancelButton" layoutX="554.0" layoutY="335.0" mnemonicParsing="false" onAction="#onButtonCancel" styleClass="simple_button" text="Cancel" visible="false" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="174.0">
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                     <graphic>
-                        <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../icons/baseline_cancel_white_24.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </Button>
+                  <HBox alignment="CENTER" layoutX="10.0" layoutY="52.0" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="52.0">
+                     <children>
+                        <Label fx:id="parameterLabel" disable="true" layoutX="15.0" layoutY="54.0" text="Input Parameter:" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="55.0" />
+                        <TextField fx:id="parameterTextField" disable="true" layoutX="109.0" layoutY="52.0" AnchorPane.leftAnchor="102.0" AnchorPane.topAnchor="52.0" />
+                     </children>
+                  </HBox>
+                  <HBox layoutX="10.0" layoutY="334.0" spacing="5.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="10.0">
+                     <children>
+                        <Button fx:id="editButton" layoutX="310.0" layoutY="335.0" mnemonicParsing="false" onAction="#onButtonEdit" styleClass="simple_button" text="Edit" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="10.0">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                           <graphic>
+                              <ImageView fitHeight="18.0" fitWidth="38.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../icons/baseline_edit_white_24.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                        <Button fx:id="backButton" layoutX="304.0" layoutY="335.0" mnemonicParsing="false" onAction="#onButtonBack" styleClass="simple_button" text="Back to Attribute List" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="79.0">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                           <graphic>
+                              <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../icons/baseline_arrow_back_ios_white_24.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                        <Button fx:id="validateButton" layoutX="431.0" layoutY="335.0" mnemonicParsing="false" onAction="#onButtonValidate" styleClass="simple_button" text="Validate" visible="false" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="10.0">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                           <graphic>
+                              <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../icons/baseline_verified_user_white_24.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                        <Button fx:id="saveButton" layoutX="492.0" layoutY="335.0" mnemonicParsing="false" onAction="#onButtonSave" styleClass="simple_button" text="Save" visible="false" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="101.0">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                           <graphic>
+                              <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../icons/baseline_save_white_24.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                        <Button fx:id="cancelButton" layoutX="554.0" layoutY="335.0" mnemonicParsing="false" onAction="#onButtonCancel" styleClass="simple_button" text="Cancel" visible="false" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="174.0">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                           <graphic>
+                              <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../icons/baseline_cancel_white_24.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                     </children>
+                  </HBox>
                </children>
             </AnchorPane>
          </children>

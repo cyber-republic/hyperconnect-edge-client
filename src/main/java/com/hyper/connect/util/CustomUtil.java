@@ -1,5 +1,7 @@
 package com.hyper.connect.util;
 
+import org.apache.commons.lang3.RandomStringUtils;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -66,5 +68,13 @@ public class CustomUtil{
 		dateFormat.setTimeZone(TimeZone.getTimeZone(timeZone));
 		String newDateTime=dateFormat.format(new Date(utcLong));
 		return newDateTime;
+	}
+
+	public static String getRandomGlobalEventId(){
+		int length=12;
+		boolean useLetters=true;
+		boolean useNumbers=true;
+		String globalEventId=RandomStringUtils.random(length, useLetters, useNumbers);
+		return globalEventId;
 	}
 }

@@ -13,33 +13,68 @@
          <children>
             <AnchorPane layoutX="73.0" layoutY="56.0" prefHeight="200.0" prefWidth="200.0" styleClass="pane_background" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
                <children>
-                  <TableView fx:id="eventListTableView" layoutX="33.0" layoutY="51.0" prefHeight="200.0" prefWidth="600.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0">
-                    <columns>
-                      <TableColumn fx:id="idColumn" minWidth="40.0" prefWidth="40.0" resizable="false" text="ID" />
-                      <TableColumn fx:id="nameColumn" minWidth="100.0" prefWidth="100.0" text="Name" />
-                        <TableColumn fx:id="sourceColumn" minWidth="120.0" prefWidth="120.0" text="Event Source" />
-                        <TableColumn fx:id="actionColumn" minWidth="120.0" prefWidth="120.0" text="Event Action" />
-                        <TableColumn fx:id="stateColumn" minWidth="100.0" prefWidth="100.0" text="State" />
-                        <TableColumn fx:id="actionsColumn" minWidth="120.0" prefWidth="120.0" text="Actions" />
-                    </columns>
-                  </TableView>
-                  <Button layoutX="308.0" layoutY="1.0" mnemonicParsing="false" onAction="#onAddEvent" styleClass="simple_button" text="Add Event" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
-                     <graphic>
-                        <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../icons/baseline_add_white_24.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                  </Button>
-                  <Text layoutX="325.0" layoutY="28.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Event List" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
-                     <font>
-                        <Font name="System Bold" size="15.0" />
-                     </font>
-                  </Text>
+                  <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <tabs>
+                      <Tab text="Local">
+                           <content>
+                              <AnchorPane>
+                                 <children>
+                                    <TableView fx:id="localEventListTableView" layoutY="30.0" prefHeight="200.0" prefWidth="600.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0">
+                                      <columns>
+                                        <TableColumn fx:id="localIdColumn" minWidth="40.0" prefWidth="40.0" resizable="false" text="ID" />
+                                        <TableColumn fx:id="localNameColumn" minWidth="100.0" prefWidth="100.0" text="Name" />
+                                          <TableColumn fx:id="localSourceColumn" minWidth="120.0" prefWidth="120.0" text="Event Source" />
+                                          <TableColumn fx:id="localActionColumn" minWidth="120.0" prefWidth="120.0" text="Event Action" />
+                                          <TableColumn fx:id="localStateColumn" minWidth="100.0" prefWidth="100.0" text="State" />
+                                          <TableColumn fx:id="localActionsColumn" minWidth="120.0" prefWidth="120.0" text="Actions" />
+                                      </columns>
+                                    </TableView>
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Local Event List" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                       <font>
+                                          <Font name="System Bold" size="15.0" />
+                                       </font>
+                                    </Text>
+                                    <Button layoutX="507.0" mnemonicParsing="false" onAction="#onAddEvent" styleClass="simple_button" text="Add Event" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                       <graphic>
+                                          <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                             <image>
+                                                <Image url="@../icons/baseline_add_white_24.png" />
+                                             </image>
+                                          </ImageView>
+                                       </graphic>
+                                       <cursor>
+                                          <Cursor fx:constant="HAND" />
+                                       </cursor>
+                                    </Button>
+                                 </children>
+                              </AnchorPane>
+                           </content>
+                        </Tab>
+                      <Tab text="Global">
+                           <content>
+                              <AnchorPane>
+                                 <children>
+                                    <TableView fx:id="globalEventListTableView" layoutY="30.0" prefHeight="200.0" prefWidth="600.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0">
+                                       <columns>
+                                          <TableColumn fx:id="globalIdColumn" minWidth="40.0" prefWidth="40.0" resizable="false" text="ID" />
+                                          <TableColumn fx:id="globalNameColumn" minWidth="100.0" prefWidth="100.0" text="Name" />
+                                          <TableColumn fx:id="globalSourceColumn" minWidth="120.0" prefWidth="120.0" text="Event Source" />
+                                          <TableColumn fx:id="globalActionColumn" minWidth="120.0" prefWidth="120.0" text="Event Action" />
+                                          <TableColumn fx:id="globalStateColumn" minWidth="100.0" prefWidth="100.0" text="State" />
+                                          <TableColumn fx:id="globalActionsColumn" minWidth="120.0" prefWidth="120.0" text="Actions" />
+                                       </columns>
+                                    </TableView>
+                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Global Event List" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                       <font>
+                                          <Font name="System Bold" size="15.0" />
+                                       </font>
+                                    </Text>
+                                 </children>
+                              </AnchorPane>
+                           </content>
+                        </Tab>
+                    </tabs>
+                  </TabPane>
                </children>
             </AnchorPane>
          </children>

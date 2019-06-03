@@ -1,16 +1,21 @@
 package com.hyper.connect.model;
 
+import com.hyper.connect.model.enums.AttributeDirection;
+import com.hyper.connect.model.enums.AttributeScriptState;
+import com.hyper.connect.model.enums.AttributeState;
+import com.hyper.connect.model.enums.AttributeType;
+
 public class Attribute{
 	private int id;
 	private String name;
-	private String direction; /*** input, output ***/
-	private String type; /*** string, boolean, integer, double ***/
+	private AttributeDirection direction; /*** input, output ***/
+	private AttributeType type; /*** string, boolean, integer, double ***/
 	private int interval;
-	private String scriptState; /*** valid, invalid ***/
-	private String state; /*** active, deactivated ***/
+	private AttributeScriptState scriptState; /*** valid, invalid ***/
+	private AttributeState state; /*** active, deactivated ***/
 	private int sensorId;
 	
-	public Attribute(int id, String name, String direction, String type, int interval, String scriptState, String state, int sensorId){
+	public Attribute(int id, String name, AttributeDirection direction, AttributeType type, int interval, AttributeScriptState scriptState, AttributeState state, int sensorId){
 		this.id=id;
 		this.name=name;
 		this.direction=direction;
@@ -29,11 +34,11 @@ public class Attribute{
 		return this.name;
 	}
 
-	public String getDirection(){
+	public AttributeDirection getDirection(){
 		return this.direction;
 	}
 
-	public String getType(){
+	public AttributeType getType(){
 		return this.type;
 	}
 	
@@ -41,11 +46,11 @@ public class Attribute{
 		return this.interval;
 	}
 	
-	public String getScriptState(){
+	public AttributeScriptState getScriptState(){
 		return this.scriptState;
 	}
 	
-	public String getState(){
+	public AttributeState getState(){
 		return this.state;
 	}
 
@@ -61,11 +66,11 @@ public class Attribute{
 		this.name=name;
 	}
 
-	public void setDirection(String direction){
+	public void setDirection(AttributeDirection direction){
 		this.direction=direction;
 	}
 
-	public void setType(String type){
+	public void setType(AttributeType type){
 		this.type=type;
 	}
 	
@@ -73,11 +78,11 @@ public class Attribute{
 		this.interval=interval;
 	}
 	
-	public void setScriptState(String scriptState){
+	public void setScriptState(AttributeScriptState scriptState){
 		this.scriptState=scriptState;
 	}
 	
-	public void setState(String state){
+	public void setState(AttributeState state){
 		this.state=state;
 	}
 

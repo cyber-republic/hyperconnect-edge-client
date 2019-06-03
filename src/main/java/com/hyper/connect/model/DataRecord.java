@@ -49,4 +49,14 @@ public class DataRecord{
 	public void setValue(String value){
 		this.value=value;
 	}
+
+	@Override
+	public String toString(){
+		return "DataRecord{"+
+				"id="+id+
+				", attributeId="+attributeId+
+				", dateTime='"+dateTime+'\''+
+				", value='"+value+'\''+
+				'}';
+	}
 }

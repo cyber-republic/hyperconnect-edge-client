@@ -1,14 +1,17 @@
 package com.hyper.connect.model;
 
 
+import com.hyper.connect.model.enums.EventAverage;
+import com.hyper.connect.model.enums.PinnedChartWindow;
+
 public class PinnedChart{
 	private int id;
 	private int attributeId;
 	private String attributeName;
-	private String window;
-	private String average;
+	private PinnedChartWindow window; /*** hour, day, month ***/
+	private EventAverage average; /*** real-time, 1m, 5m, 15m, 1h, 3h, 6h, 1d ***/
 
-	public PinnedChart(int id, int attributeId, String attributeName, String window, String average){
+	public PinnedChart(int id, int attributeId, String attributeName, PinnedChartWindow window, EventAverage average){
 		this.id=id;
 		this.attributeId=attributeId;
 		this.attributeName=attributeName;
@@ -28,11 +31,11 @@ public class PinnedChart{
 		return this.attributeName;
 	}
 
-	public String getWindow(){
+	public PinnedChartWindow getWindow(){
 		return this.window;
 	}
 
-	public String getAverage(){
+	public EventAverage getAverage(){
 		return this.average;
 	}
 
@@ -48,11 +51,11 @@ public class PinnedChart{
 		this.attributeName=attributeName;
 	}
 
-	public void setWindow(String window){
+	public void setWindow(PinnedChartWindow window){
 		this.window=window;
 	}
 
-	public void setAverage(String average){
+	public void setAverage(EventAverage average){
 		this.average=average;
 	}
 	

@@ -1,23 +1,20 @@
 package com.hyper.connect.management;
 
 import com.hyper.connect.management.concurrent.processor.Average;
+import com.hyper.connect.model.enums.AttributeType;
 import com.hyper.connect.model.Event;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import com.google.gson.JsonObject;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.FileNotFoundException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.hyper.connect.model.enums.EventCondition;
 import com.hyper.connect.util.CustomUtil;
 
 import java.lang.reflect.Type;
@@ -96,24 +93,24 @@ public class HistoryManagement{
 		catch(IOException ioe){}
 	}
 	
-	public boolean eventConditionCheck(Event event, String type, String value){
-		String condition=event.getCondition();
+	public boolean eventConditionCheck(Event event, AttributeType type, String value){
+		EventCondition condition=event.getCondition();
 		String eventValue=event.getConditionValue();
 		
 		try{
-			if(type.equals("string")){
-				if(condition.equals("equal to")){
+			if(type==AttributeType.STRING){
+				if(condition==EventCondition.EQUAL_TO){
 					if(value.equals(eventValue)){
 						return true;
 					}
 				}
-				else if(condition.equals("not equal to")){
+				else if(condition==EventCondition.NOT_EQUAL_TO){
 					if(!value.equals(eventValue)){
 						return true;
 					}
 				}
 			}
-			else if(type.equals("boolean")){
+			else if(type==AttributeType.BOOLEAN){
 				boolean valueBoolean=false;
 				if(value.equals("true") || value.equals("1") || value.equals("True")){
 					valueBoolean=true;
@@ -124,60 +121,60 @@ public class HistoryManagement{
 					eventValueBoolean=true;
 				}
 				
-				if(condition.equals("equal to")){
+				if(condition==EventCondition.EQUAL_TO){
 					if(valueBoolean==eventValueBoolean){
 						return true;
 					}
 				}
-				else if(condition.equals("not equal to")){
+				else if(condition==EventCondition.NOT_EQUAL_TO){
 					if(valueBoolean!=eventValueBoolean){
 						return true;
 					}
 				}
 			}
-			else if(type.equals("integer")){
+			else if(type==AttributeType.INTEGER){
 				int valueInt=Integer.parseInt(value);
 				int eventValueInt=Integer.parseInt(eventValue);
-				if(condition.equals("equal to")){
+				if(condition==EventCondition.EQUAL_TO){
 					if(valueInt==eventValueInt){
 						return true;
 					}
 				}
-				else if(condition.equals("not equal to")){
+				else if(condition==EventCondition.NOT_EQUAL_TO){
 					if(valueInt!=eventValueInt){
 						return true;
 					}
 				}
-				else if(condition.equals("greater than")){
+				else if(condition==EventCondition.GREATER_THAN){
 					if(valueInt>eventValueInt){
 						return true;
 					}
 				}
-				else if(condition.equals("less than")){
+				else if(condition==EventCondition.LESS_THAN){
 					if(valueInt<eventValueInt){
 						return true;
 					}
 				}
 			}
-			else if(type.equals("double")){
+			else if(type==AttributeType.DOUBLE){
 				double valueDouble=Double.parseDouble(value);
 				double eventValueDouble=Double.parseDouble(eventValue);
-				if(condition.equals("equal to")){
+				if(condition==EventCondition.EQUAL_TO){
 					if(valueDouble==eventValueDouble){
 						return true;
 					}
 				}
-				else if(condition.equals("not equal to")){
+				else if(condition==EventCondition.NOT_EQUAL_TO){
 					if(valueDouble!=eventValueDouble){
 						return true;
 					}
 				}
-				else if(condition.equals("greater than")){
+				else if(condition==EventCondition.GREATER_THAN){
 					if(valueDouble>eventValueDouble){
 						return true;
 					}
 				}
-				else if(condition.equals("less than")){
+				else if(condition==EventCondition.LESS_THAN){
 					if(valueDouble<eventValueDouble){
 						return true;
 					}

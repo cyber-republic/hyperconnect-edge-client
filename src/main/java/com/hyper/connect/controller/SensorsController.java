@@ -1,5 +1,8 @@
 package com.hyper.connect.controller;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.hyper.connect.App;
 import com.hyper.connect.model.Sensor;
 import com.hyper.connect.model.Attribute;
@@ -237,6 +240,11 @@ public class SensorsController{
 					if(newSensor!=null){
 						sensorObservableList.addAll(newSensor);
 						app.showMessageStripAndSave("Success", "Device", "Sensor '"+newSensor.getName()+" ("+newSensor.getId()+")' has been added.", sensorsPane);
+						JsonElement jsonSensor=new Gson().toJsonTree(newSensor);
+						JsonObject jsonObject=new JsonObject();
+						jsonObject.addProperty("command", "addSensor");
+						jsonObject.add("sensor", jsonSensor);
+						app.getElastosCarrier().sendDataToControllers(jsonObject);
 					}
 					else{
 						app.showMessageStripAndSave("Error", "Device", "Sorry, something went wrong adding the sensor '"+name+"'.", sensorsPane);

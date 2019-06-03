@@ -1,10 +1,15 @@
 package com.hyper.connect.controller;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.hyper.connect.App;
-import com.hyper.connect.model.Sensor;
-import com.hyper.connect.model.Attribute;
-import com.hyper.connect.model.Event;
+import com.hyper.connect.model.*;
 
+import com.hyper.connect.model.enums.AttributeState;
+import com.hyper.connect.model.enums.EventEdgeType;
+import com.hyper.connect.model.enums.EventState;
+import com.hyper.connect.model.enums.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -31,16 +36,24 @@ import java.io.IOException;
 
 public class EventsController{
 	private App app;
-	private ObservableList<Event> eventObservableList;
+	private ObservableList<Event> localEventObservableList;
+	private ObservableList<Event> globalEventObservableList;
 	
 	@FXML private StackPane eventsPane;
-	@FXML private TableView eventListTableView;
-	@FXML private TableColumn idColumn;
-	@FXML private TableColumn nameColumn;
-	@FXML private TableColumn sourceColumn;
-	@FXML private TableColumn actionColumn;
-	@FXML private TableColumn stateColumn;
-	@FXML private TableColumn actionsColumn;
+	@FXML private TableView localEventListTableView;
+	@FXML private TableColumn localIdColumn;
+	@FXML private TableColumn localNameColumn;
+	@FXML private TableColumn localSourceColumn;
+	@FXML private TableColumn localActionColumn;
+	@FXML private TableColumn localStateColumn;
+	@FXML private TableColumn localActionsColumn;
+	@FXML private TableView globalEventListTableView;
+	@FXML private TableColumn globalIdColumn;
+	@FXML private TableColumn globalNameColumn;
+	@FXML private TableColumn globalSourceColumn;
+	@FXML private TableColumn globalActionColumn;
+	@FXML private TableColumn globalStateColumn;
+	@FXML private TableColumn globalActionsColumn;
 	
 	public EventsController(){}
 	
@@ -52,302 +65,623 @@ public class EventsController{
 		Task initTask=new Task<Void>(){
 			@Override
 			public Void call(){
-				ArrayList<Event> eventList=app.getDatabase().getEventList();
-				eventObservableList=FXCollections.observableArrayList(eventList);
-				idColumn.setCellValueFactory(new PropertyValueFactory("id"));
-				nameColumn.setCellValueFactory(new PropertyValueFactory("name"));
-				
-				Callback<TableColumn<Event, String>, TableCell<Event, String>> stateCellFactory=new Callback<TableColumn<Event, String>, TableCell<Event, String>>(){
-					@Override
-					public TableCell call(final TableColumn<Event, String> param){
-						final TableCell<Event, String> cell=new TableCell<Event, String>(){
-							@Override
-							public void updateItem(String item, boolean empty){
-								super.updateItem(item, empty);
-								if(empty){
-									setGraphic(null);
-									setText(null);
-								}
-								else{
-									Event event=getTableView().getItems().get(getIndex());
-									String state=event.getState();
-									Text stateText=new Text(state);
-									if(state.equals("active")){
-										stateText.setFill(Color.GREEN);
-									}
-									else{
-										stateText.setFill(Color.RED);
-									}
-									setGraphic(stateText);
-									setText(null);
-								}
-							}
-						};
-						return cell;
-					}
-				};
-				
-				Callback<TableColumn<Event, String>, TableCell<Event, String>> eventSourceCellFactory=new Callback<TableColumn<Event, String>, TableCell<Event, String>>(){
-					@Override
-					public TableCell call(final TableColumn<Event, String> param){
-						final TableCell<Event, String> cell=new TableCell<Event, String>(){
-							@Override
-							public void updateItem(String item, boolean empty){
-								super.updateItem(item, empty);
-								if(empty){
-									setGraphic(null);
-									setText(null);
-								}
-								else{
-									Event event=getTableView().getItems().get(getIndex());
-									String state=event.getState();
-									
-									Sensor sensor=app.getDatabase().getSensorBySensorId(event.getSourceSensorId());
-									Attribute attribute=app.getDatabase().getAttributeByAttributeId(event.getSourceAttributeId());
-									Hyperlink attributeLink=new Hyperlink(attribute.getName());
-									attributeLink.setOnAction(linkEvent -> {
-										try{
-											Region veil=new Region();
-											veil.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4)");
-
-											FXMLLoader loader=new FXMLLoader(getClass().getClassLoader().getResource("scenes/dialog_event_source.fxml"));
-											AnchorPane eventSourceContent=(AnchorPane)loader.load();
-											
-											Label titelLabel=(Label)eventSourceContent.lookup("#titelLabel");
-											titelLabel.setText("Source for Event '"+event.getName()+"'");
-											Label sensorLabel=(Label)eventSourceContent.lookup("#sensorLabel");
-											sensorLabel.setText(sensor.getName());
-											Label attributeLabel=(Label)eventSourceContent.lookup("#attributeLabel");
-											attributeLabel.setText(attribute.getName());
-											Label averageLabel=(Label)eventSourceContent.lookup("#averageLabel");
-											averageLabel.setText(getAverageLabel(event.getAverage()));
-											Label conditionLabel=(Label)eventSourceContent.lookup("#conditionLabel");
-											conditionLabel.setText(event.getCondition());
-											Label valueLabel=(Label)eventSourceContent.lookup("#valueLabel");
-											valueLabel.setText(event.getConditionValue());
-											
-											Button closeButton=(Button)eventSourceContent.lookup("#closeButton");
-											closeButton.setOnAction(closeEvent -> {
-												app.closeDialog(veil, eventSourceContent, eventsPane);
-											});
-
-											app.showDialog(veil, eventSourceContent, eventsPane);
-										}
-										catch(IOException ioe){}
-									});
-									
-									setGraphic(attributeLink);
-									setText(null);
-								}
-							}
-						};
-						return cell;
-					}
-				};
-				
-				Callback<TableColumn<Event, String>, TableCell<Event, String>> eventActionCellFactory=new Callback<TableColumn<Event, String>, TableCell<Event, String>>(){
-					@Override
-					public TableCell call(final TableColumn<Event, String> param){
-						final TableCell<Event, String> cell=new TableCell<Event, String>(){
-							@Override
-							public void updateItem(String item, boolean empty){
-								super.updateItem(item, empty);
-								if(empty){
-									setGraphic(null);
-									setText(null);
-								}
-								else{
-									Event event=getTableView().getItems().get(getIndex());
-									String state=event.getState();
-									
-									Sensor sensor=app.getDatabase().getSensorBySensorId(event.getActionSensorId());
-									Attribute attribute=app.getDatabase().getAttributeByAttributeId(event.getActionAttributeId());
-									Hyperlink attributeLink=new Hyperlink(attribute.getName());
-									attributeLink.setOnAction(linkEvent -> {
-										try{
-											Region veil=new Region();
-											veil.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4)");
-
-											FXMLLoader loader=new FXMLLoader(getClass().getClassLoader().getResource("scenes/dialog_event_action.fxml"));
-											AnchorPane eventActionContent=(AnchorPane)loader.load();
-											
-											Label titelLabel=(Label)eventActionContent.lookup("#titelLabel");
-											titelLabel.setText("Action for Event '"+event.getName()+"'");
-											Label sensorLabel=(Label)eventActionContent.lookup("#sensorLabel");
-											sensorLabel.setText(sensor.getName());
-											Label attributeLabel=(Label)eventActionContent.lookup("#attributeLabel");
-											attributeLabel.setText(attribute.getName());
-											Label valueLabel=(Label)eventActionContent.lookup("#valueLabel");
-											valueLabel.setText(event.getTriggerValue());
-											
-											Button closeButton=(Button)eventActionContent.lookup("#closeButton");
-											closeButton.setOnAction(closeEvent -> {
-												app.closeDialog(veil, eventActionContent, eventsPane);
-											});
-
-											app.showDialog(veil, eventActionContent, eventsPane);
-										}
-										catch(IOException ioe){}
-									});
-									
-									setGraphic(attributeLink);
-									setText(null);
-								}
-							}
-						};
-						return cell;
-					}
-				};
-				
-				Callback<TableColumn<Event, String>, TableCell<Event, String>> actionsCellFactory=new Callback<TableColumn<Event, String>, TableCell<Event, String>>(){
-					@Override
-					public TableCell call(final TableColumn<Event, String> param){
-						final TableCell<Event, String> cell=new TableCell<Event, String>(){
-							final ToggleButton stateButton=new ToggleButton();
-							final Button deleteButton=new Button();
-							
-							@Override
-							public void updateItem(String item, boolean empty){
-								super.updateItem(item, empty);
-
-								stateButton.setStyle("-fx-background-color: transparent;");
-								stateButton.setPadding(new Insets(0, 0, 0, 0));
-								stateButton.setCursor(Cursor.HAND);
-								deleteButton.getStyleClass().add("simple_button");
-								deleteButton.setCursor(Cursor.HAND);
-								
-								if(empty){
-									setGraphic(null);
-									setText(null);
-								}
-								else{
-									Event event=getTableView().getItems().get(getIndex());
-									Attribute sourceAttribute=app.getDatabase().getAttributeByAttributeId(event.getSourceAttributeId());
-									Attribute actionAttribute=app.getDatabase().getAttributeByAttributeId(event.getActionAttributeId());
-									
-									if(event.getState().equals("active")){
-										setToggleButtonState(stateButton, true);
-									}
-									else{
-										setToggleButtonState(stateButton, false);
-									}
-									stateButton.setOnAction(stateEvent -> {
-										boolean canContinue=false;
-									
-										if(sourceAttribute.getState().equals("deactivated") && actionAttribute.getState().equals("deactivated")){
-											app.showMessageStrip("Warning", "The source and action attributes for this event must be activated.", eventsPane);
-										}
-										else if(sourceAttribute.getState().equals("deactivated")){
-											app.showMessageStrip("Warning", "The source attribute for this event must be activated.", eventsPane);
-										}
-										else if(actionAttribute.getState().equals("deactivated")){
-											app.showMessageStrip("Warning", "The action attribute for this event must be activated.", eventsPane);
-										}
-										else{
-											canContinue=true;
-										}
-										
-										if(canContinue){
-											Task stateChangeTask=new Task<Void>(){
-												@Override
-												public Void call(){
-													boolean isSelected=stateButton.isSelected();
-													if(isSelected){
-														event.setState("active");
-													}
-													else{
-														event.setState("deactivated");
-													}
-													boolean updateResult=app.getDatabase().updateEvent(event);
-													if(updateResult){
-														eventListTableView.getItems().set(getIndex(), event);
-														app.getAttributeManager().updateEventState(event.getSourceAttributeId(), event.getAverage());
-														if(event.getState().equals("active")){
-															app.showMessageStripAndSave("Success", "Event", "Event '"+event.getName()+" ("+event.getId()+")' has been activated.", eventsPane);
-														}
-														else{
-															app.showMessageStripAndSave("Success", "Event", "Event '"+event.getName()+" ("+event.getId()+")' has been deactivated.", eventsPane);
-														}
-													}
-													else{
-														app.showMessageStripAndSave("Error", "Event", "Sorry, something went wrong changing the state of event '"+event.getName()+" ("+event.getId()+")'.", eventsPane);
-													}
-													return null;
-												}
-											};
-											app.executeAsyncTask(stateChangeTask, eventsPane);
-										}
-										else{
-											setToggleButtonState(stateButton, false);
-										}
-									});
-									
-									ImageView deleteImageView=new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("icons/baseline_delete_white_24.png")));
-									deleteImageView.setFitWidth(18);
-									deleteImageView.setFitHeight(18);
-									deleteButton.setGraphic(deleteImageView);
-									deleteButton.setOnAction(deleteEvent -> {
-										try{
-											Region veil=new Region();
-											veil.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4)");
-
-											FXMLLoader loader=new FXMLLoader(getClass().getClassLoader().getResource("scenes/dialog_delete_event.fxml"));
-											AnchorPane deleteDialogContent=(AnchorPane)loader.load();
-
-											AnchorPane titelPane=(AnchorPane)deleteDialogContent.lookup("#titelPane");
-											Text dialogText=(Text)deleteDialogContent.lookup("#dialogText");
-											HBox actionsHbox=(HBox)deleteDialogContent.lookup("#actionsHbox");
-											double dialogHeight=dialogText.getBoundsInLocal().getHeight()+titelPane.getPrefHeight()+actionsHbox.getPrefHeight()+30;
-											deleteDialogContent.setPrefHeight(dialogHeight);
-
-											Button cancelButton=(Button)deleteDialogContent.lookup("#cancelButton");
-											cancelButton.setOnAction(cancelEvent -> {
-												app.closeDialog(veil, deleteDialogContent, eventsPane);
-											});
-											Button confirmButton=(Button)deleteDialogContent.lookup("#confirmButton");
-											confirmButton.setOnAction(confirmEvent -> {
-												Task deleteTask=new Task<Void>(){
-													@Override
-													public Void call(){
-														app.getDatabase().deleteEventByEventId(event.getId());
-														eventObservableList.removeAll(event);
-														app.showMessageStripAndSave("Success", "Event", "Event '"+event.getName()+" ("+event.getId()+")' has been deleted.", eventsPane);
-														//TODO: stop event if deleted
-														//app.getAttributeManager().deleteAttribute(sourceAttribute.getId());
-														return null;
-													}
-												};
-												app.executeAsyncTask(deleteTask, eventsPane);
-												app.closeDialog(veil, deleteDialogContent, eventsPane);
-											});
-
-											app.showDialog(veil, deleteDialogContent, eventsPane);
-										}
-										catch(IOException ioe){}
-									});
-									
-									HBox hbox=new HBox(stateButton, deleteButton);
-									hbox.setSpacing(10);
-									hbox.setAlignment(Pos.CENTER_LEFT);
-									setGraphic(hbox);
-									setText(null);
-								}
-							}
-						};
-						return cell;
-					}
-				};
-				
-				sourceColumn.setCellFactory(eventSourceCellFactory);
-				actionColumn.setCellFactory(eventActionCellFactory);
-				stateColumn.setCellFactory(stateCellFactory);
-				actionsColumn.setCellFactory(actionsCellFactory);
-				eventListTableView.setItems(eventObservableList);
-				
+				initLocalEventList();
+				initGlobalEventList();
 				return null;
 			}
 		};
 		this.app.executeAsyncTask(initTask, eventsPane);
+	}
+
+	private void initLocalEventList(){
+		ArrayList<Event> eventList=app.getDatabase().getEventListByType(EventType.LOCAL);
+		localEventObservableList=FXCollections.observableArrayList(eventList);
+		localIdColumn.setCellValueFactory(new PropertyValueFactory("id"));
+		localNameColumn.setCellValueFactory(new PropertyValueFactory("name"));
+
+		Callback<TableColumn<Event, String>, TableCell<Event, String>> stateCellFactory=new Callback<TableColumn<Event, String>, TableCell<Event, String>>(){
+			@Override
+			public TableCell call(final TableColumn<Event, String> param){
+				final TableCell<Event, String> cell=new TableCell<Event, String>(){
+					@Override
+					public void updateItem(String item, boolean empty){
+						super.updateItem(item, empty);
+						if(empty){
+							setGraphic(null);
+							setText(null);
+						}
+						else{
+							Event event=getTableView().getItems().get(getIndex());
+							EventState state=event.getState();
+							Text stateText=new Text(state.toString());
+							if(state==EventState.ACTIVE){
+								stateText.setFill(Color.GREEN);
+							}
+							else{
+								stateText.setFill(Color.RED);
+							}
+							setGraphic(stateText);
+							setText(null);
+						}
+					}
+				};
+				return cell;
+			}
+		};
+
+		Callback<TableColumn<Event, String>, TableCell<Event, String>> eventSourceCellFactory=new Callback<TableColumn<Event, String>, TableCell<Event, String>>(){
+			@Override
+			public TableCell call(final TableColumn<Event, String> param){
+				final TableCell<Event, String> cell=new TableCell<Event, String>(){
+					@Override
+					public void updateItem(String item, boolean empty){
+						super.updateItem(item, empty);
+						if(empty){
+							setGraphic(null);
+							setText(null);
+						}
+						else{
+							Event event=getTableView().getItems().get(getIndex());
+
+							Sensor sensor=app.getDatabase().getSensorBySensorId(event.getSourceEdgeSensorId());
+							Attribute attribute=app.getDatabase().getAttributeByAttributeId(event.getSourceEdgeAttributeId());
+							Hyperlink attributeLink=new Hyperlink(attribute.getName());
+							attributeLink.setOnAction(linkEvent -> {
+								try{
+									Region veil=new Region();
+									veil.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4)");
+
+									FXMLLoader loader=new FXMLLoader(getClass().getClassLoader().getResource("scenes/dialog_event_source.fxml"));
+									AnchorPane eventSourceContent=(AnchorPane)loader.load();
+
+									Label titelLabel=(Label)eventSourceContent.lookup("#titelLabel");
+									titelLabel.setText("Source for Event '"+event.getName()+"'");
+									Label sensorLabel=(Label)eventSourceContent.lookup("#sensorLabel");
+									sensorLabel.setText(sensor.getName());
+									Label attributeLabel=(Label)eventSourceContent.lookup("#attributeLabel");
+									attributeLabel.setText(attribute.getName());
+									Label averageLabel=(Label)eventSourceContent.lookup("#averageLabel");
+									averageLabel.setText(event.getAverage().toString());
+									Label conditionLabel=(Label)eventSourceContent.lookup("#conditionLabel");
+									conditionLabel.setText(event.getCondition().toString());
+									Label valueLabel=(Label)eventSourceContent.lookup("#valueLabel");
+									valueLabel.setText(event.getConditionValue());
+
+									Button closeButton=(Button)eventSourceContent.lookup("#closeButton");
+									closeButton.setOnAction(closeEvent -> {
+										app.closeDialog(veil, eventSourceContent, eventsPane);
+									});
+
+									app.showDialog(veil, eventSourceContent, eventsPane);
+								}
+								catch(IOException ioe){}
+							});
+
+							setGraphic(attributeLink);
+							setText(null);
+						}
+					}
+				};
+				return cell;
+			}
+		};
+
+		Callback<TableColumn<Event, String>, TableCell<Event, String>> eventActionCellFactory=new Callback<TableColumn<Event, String>, TableCell<Event, String>>(){
+			@Override
+			public TableCell call(final TableColumn<Event, String> param){
+				final TableCell<Event, String> cell=new TableCell<Event, String>(){
+					@Override
+					public void updateItem(String item, boolean empty){
+						super.updateItem(item, empty);
+						if(empty){
+							setGraphic(null);
+							setText(null);
+						}
+						else{
+							Event event=getTableView().getItems().get(getIndex());
+
+							Sensor sensor=app.getDatabase().getSensorBySensorId(event.getActionEdgeSensorId());
+							Attribute attribute=app.getDatabase().getAttributeByAttributeId(event.getActionEdgeAttributeId());
+							Hyperlink attributeLink=new Hyperlink(attribute.getName());
+							attributeLink.setOnAction(linkEvent -> {
+								try{
+									Region veil=new Region();
+									veil.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4)");
+
+									FXMLLoader loader=new FXMLLoader(getClass().getClassLoader().getResource("scenes/dialog_event_action.fxml"));
+									AnchorPane eventActionContent=(AnchorPane)loader.load();
+
+									Label titelLabel=(Label)eventActionContent.lookup("#titelLabel");
+									titelLabel.setText("Action for Event '"+event.getName()+"'");
+									Label sensorLabel=(Label)eventActionContent.lookup("#sensorLabel");
+									sensorLabel.setText(sensor.getName());
+									Label attributeLabel=(Label)eventActionContent.lookup("#attributeLabel");
+									attributeLabel.setText(attribute.getName());
+									Label valueLabel=(Label)eventActionContent.lookup("#valueLabel");
+									valueLabel.setText(event.getTriggerValue());
+
+									Button closeButton=(Button)eventActionContent.lookup("#closeButton");
+									closeButton.setOnAction(closeEvent -> {
+										app.closeDialog(veil, eventActionContent, eventsPane);
+									});
+
+									app.showDialog(veil, eventActionContent, eventsPane);
+								}
+								catch(IOException ioe){}
+							});
+
+							setGraphic(attributeLink);
+							setText(null);
+						}
+					}
+				};
+				return cell;
+			}
+		};
+
+		Callback<TableColumn<Event, String>, TableCell<Event, String>> actionsCellFactory=new Callback<TableColumn<Event, String>, TableCell<Event, String>>(){
+			@Override
+			public TableCell call(final TableColumn<Event, String> param){
+				final TableCell<Event, String> cell=new TableCell<Event, String>(){
+					final ToggleButton stateButton=new ToggleButton();
+					final Button deleteButton=new Button();
+
+					@Override
+					public void updateItem(String item, boolean empty){
+						super.updateItem(item, empty);
+
+						stateButton.setStyle("-fx-background-color: transparent;");
+						stateButton.setPadding(new Insets(0, 0, 0, 0));
+						stateButton.setCursor(Cursor.HAND);
+						deleteButton.getStyleClass().add("simple_button");
+						deleteButton.setCursor(Cursor.HAND);
+
+						if(empty){
+							setGraphic(null);
+							setText(null);
+						}
+						else{
+							Event event=getTableView().getItems().get(getIndex());
+							Attribute sourceAttribute=app.getDatabase().getAttributeByAttributeId(event.getSourceEdgeAttributeId());
+							Attribute actionAttribute=app.getDatabase().getAttributeByAttributeId(event.getActionEdgeAttributeId());
+
+							if(event.getState()==EventState.ACTIVE){
+								setToggleButtonState(stateButton, true);
+							}
+							else{
+								setToggleButtonState(stateButton, false);
+							}
+							stateButton.setOnAction(stateEvent -> {
+								boolean canContinue=false;
+
+								if(sourceAttribute.getState()==AttributeState.DEACTIVATED && actionAttribute.getState()==AttributeState.DEACTIVATED){
+									app.showMessageStrip("Warning", "The source and action attributes for this event must be activated.", eventsPane);
+								}
+								else if(sourceAttribute.getState()==AttributeState.DEACTIVATED){
+									app.showMessageStrip("Warning", "The source attribute for this event must be activated.", eventsPane);
+								}
+								else if(actionAttribute.getState()==AttributeState.DEACTIVATED){
+									app.showMessageStrip("Warning", "The action attribute for this event must be activated.", eventsPane);
+								}
+								else{
+									canContinue=true;
+								}
+
+								if(canContinue){
+									Task stateChangeTask=new Task<Void>(){
+										@Override
+										public Void call(){
+											boolean isSelected=stateButton.isSelected();
+											if(isSelected){
+												event.setState(EventState.ACTIVE);
+											}
+											else{
+												event.setState(EventState.DEACTIVATED);
+											}
+											boolean updateResult=app.getDatabase().updateEvent(event);
+											if(updateResult){
+												localEventListTableView.getItems().set(getIndex(), event);
+												app.getAttributeManager().updateEventState(event.getSourceEdgeAttributeId(), event.getAverage());
+												if(event.getState()==EventState.ACTIVE){
+													app.showMessageStripAndSave("Success", "Event", "Event '"+event.getName()+" ("+event.getId()+")' has been activated.", eventsPane);
+												}
+												else{
+													app.showMessageStripAndSave("Success", "Event", "Event '"+event.getName()+" ("+event.getId()+")' has been deactivated.", eventsPane);
+												}
+
+												JsonObject jsonObject=new JsonObject();
+												jsonObject.addProperty("command", "changeEventState");
+												jsonObject.addProperty("globalEventId", event.getGlobalEventId());
+												jsonObject.addProperty("state", isSelected);
+												app.getElastosCarrier().sendDataToControllers(jsonObject);
+											}
+											else{
+												app.showMessageStripAndSave("Error", "Event", "Sorry, something went wrong changing the state of event '"+event.getName()+" ("+event.getId()+")'.", eventsPane);
+											}
+											return null;
+										}
+									};
+									app.executeAsyncTask(stateChangeTask, eventsPane);
+								}
+								else{
+									setToggleButtonState(stateButton, false);
+								}
+							});
+
+							ImageView deleteImageView=new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("icons/baseline_delete_white_24.png")));
+							deleteImageView.setFitWidth(18);
+							deleteImageView.setFitHeight(18);
+							deleteButton.setGraphic(deleteImageView);
+							deleteButton.setOnAction(deleteEvent -> {
+								try{
+									Region veil=new Region();
+									veil.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4)");
+
+									FXMLLoader loader=new FXMLLoader(getClass().getClassLoader().getResource("scenes/dialog_delete_event.fxml"));
+									AnchorPane deleteDialogContent=(AnchorPane)loader.load();
+
+									AnchorPane titelPane=(AnchorPane)deleteDialogContent.lookup("#titelPane");
+									Text dialogText=(Text)deleteDialogContent.lookup("#dialogText");
+									HBox actionsHbox=(HBox)deleteDialogContent.lookup("#actionsHbox");
+									double dialogHeight=dialogText.getBoundsInLocal().getHeight()+titelPane.getPrefHeight()+actionsHbox.getPrefHeight()+30;
+									deleteDialogContent.setPrefHeight(dialogHeight);
+
+									Button cancelButton=(Button)deleteDialogContent.lookup("#cancelButton");
+									cancelButton.setOnAction(cancelEvent -> {
+										app.closeDialog(veil, deleteDialogContent, eventsPane);
+									});
+									Button confirmButton=(Button)deleteDialogContent.lookup("#confirmButton");
+									confirmButton.setOnAction(confirmEvent -> {
+										Task deleteTask=new Task<Void>(){
+											@Override
+											public Void call(){
+												app.getDatabase().deleteEventByEventId(event.getId());
+												localEventObservableList.removeAll(event);
+												app.showMessageStripAndSave("Success", "Event", "Event '"+event.getName()+" ("+event.getId()+")' has been deleted.", eventsPane);
+												app.getAttributeManager().updateEventState(event.getSourceEdgeAttributeId(), event.getAverage());
+												return null;
+											}
+										};
+										app.executeAsyncTask(deleteTask, eventsPane);
+										app.closeDialog(veil, deleteDialogContent, eventsPane);
+									});
+
+									app.showDialog(veil, deleteDialogContent, eventsPane);
+								}
+								catch(IOException ioe){}
+							});
+
+							HBox hbox=new HBox(stateButton, deleteButton);
+							hbox.setSpacing(10);
+							hbox.setAlignment(Pos.CENTER_LEFT);
+							setGraphic(hbox);
+							setText(null);
+						}
+					}
+				};
+				return cell;
+			}
+		};
+
+		localSourceColumn.setCellFactory(eventSourceCellFactory);
+		localActionColumn.setCellFactory(eventActionCellFactory);
+		localStateColumn.setCellFactory(stateCellFactory);
+		localActionsColumn.setCellFactory(actionsCellFactory);
+		localEventListTableView.setItems(localEventObservableList);
+	}
+
+	private void initGlobalEventList(){
+		ArrayList<Event> eventList=app.getDatabase().getEventListByType(EventType.GLOBAL);
+		globalEventObservableList=FXCollections.observableArrayList(eventList);
+		globalIdColumn.setCellValueFactory(new PropertyValueFactory("id"));
+		globalNameColumn.setCellValueFactory(new PropertyValueFactory("name"));
+
+		Callback<TableColumn<Event, String>, TableCell<Event, String>> stateCellFactory=new Callback<TableColumn<Event, String>, TableCell<Event, String>>(){
+			@Override
+			public TableCell call(final TableColumn<Event, String> param){
+				final TableCell<Event, String> cell=new TableCell<Event, String>(){
+					@Override
+					public void updateItem(String item, boolean empty){
+						super.updateItem(item, empty);
+						if(empty){
+							setGraphic(null);
+							setText(null);
+						}
+						else{
+							Event event=getTableView().getItems().get(getIndex());
+							EventState state=event.getState();
+							Text stateText=new Text(state.toString());
+							if(state==EventState.ACTIVE){
+								stateText.setFill(Color.GREEN);
+							}
+							else{
+								stateText.setFill(Color.RED);
+							}
+							setGraphic(stateText);
+							setText(null);
+						}
+					}
+				};
+				return cell;
+			}
+		};
+
+		Callback<TableColumn<Event, String>, TableCell<Event, String>> eventSourceCellFactory=new Callback<TableColumn<Event, String>, TableCell<Event, String>>(){
+			@Override
+			public TableCell call(final TableColumn<Event, String> param){
+				final TableCell<Event, String> cell=new TableCell<Event, String>(){
+					@Override
+					public void updateItem(String item, boolean empty){
+						super.updateItem(item, empty);
+						if(empty){
+							setGraphic(null);
+							setText(null);
+						}
+						else{
+							Event event=getTableView().getItems().get(getIndex());
+
+							if(event.getEdgeType()==EventEdgeType.SOURCE){
+								Sensor sensor=app.getDatabase().getSensorBySensorId(event.getSourceEdgeSensorId());
+								Attribute attribute=app.getDatabase().getAttributeByAttributeId(event.getSourceEdgeAttributeId());
+								Hyperlink attributeLink=new Hyperlink(attribute.getName());
+								attributeLink.setOnAction(linkEvent -> {
+									try{
+										Region veil=new Region();
+										veil.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4)");
+
+										FXMLLoader loader=new FXMLLoader(getClass().getClassLoader().getResource("scenes/dialog_event_source.fxml"));
+										AnchorPane eventSourceContent=(AnchorPane)loader.load();
+
+										Label titelLabel=(Label)eventSourceContent.lookup("#titelLabel");
+										titelLabel.setText("Source for Event '"+event.getName()+"'");
+										Label sensorLabel=(Label)eventSourceContent.lookup("#sensorLabel");
+										sensorLabel.setText(sensor.getName());
+										Label attributeLabel=(Label)eventSourceContent.lookup("#attributeLabel");
+										attributeLabel.setText(attribute.getName());
+										Label averageLabel=(Label)eventSourceContent.lookup("#averageLabel");
+										averageLabel.setText(event.getAverage().toString());
+										Label conditionLabel=(Label)eventSourceContent.lookup("#conditionLabel");
+										conditionLabel.setText(event.getCondition().toString());
+										Label valueLabel=(Label)eventSourceContent.lookup("#valueLabel");
+										valueLabel.setText(event.getConditionValue());
+
+										Button closeButton=(Button)eventSourceContent.lookup("#closeButton");
+										closeButton.setOnAction(closeEvent -> {
+											app.closeDialog(veil, eventSourceContent, eventsPane);
+										});
+
+										app.showDialog(veil, eventSourceContent, eventsPane);
+									}
+									catch(IOException ioe){}
+								});
+								setGraphic(attributeLink);
+							}
+							else{
+								Text text=new Text("Remote Device Source");
+								setGraphic(text);
+							}
+							setText(null);
+						}
+					}
+				};
+				return cell;
+			}
+		};
+
+		Callback<TableColumn<Event, String>, TableCell<Event, String>> eventActionCellFactory=new Callback<TableColumn<Event, String>, TableCell<Event, String>>(){
+			@Override
+			public TableCell call(final TableColumn<Event, String> param){
+				final TableCell<Event, String> cell=new TableCell<Event, String>(){
+					@Override
+					public void updateItem(String item, boolean empty){
+						super.updateItem(item, empty);
+						if(empty){
+							setGraphic(null);
+							setText(null);
+						}
+						else{
+							Event event=getTableView().getItems().get(getIndex());
+
+							if(event.getEdgeType()==EventEdgeType.ACTION){
+								Sensor sensor=app.getDatabase().getSensorBySensorId(event.getActionEdgeSensorId());
+								Attribute attribute=app.getDatabase().getAttributeByAttributeId(event.getActionEdgeAttributeId());
+								Hyperlink attributeLink=new Hyperlink(attribute.getName());
+								attributeLink.setOnAction(linkEvent -> {
+									try{
+										Region veil=new Region();
+										veil.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4)");
+
+										FXMLLoader loader=new FXMLLoader(getClass().getClassLoader().getResource("scenes/dialog_event_action.fxml"));
+										AnchorPane eventActionContent=(AnchorPane)loader.load();
+
+										Label titelLabel=(Label)eventActionContent.lookup("#titelLabel");
+										titelLabel.setText("Action for Event '"+event.getName()+"'");
+										Label sensorLabel=(Label)eventActionContent.lookup("#sensorLabel");
+										sensorLabel.setText(sensor.getName());
+										Label attributeLabel=(Label)eventActionContent.lookup("#attributeLabel");
+										attributeLabel.setText(attribute.getName());
+										Label valueLabel=(Label)eventActionContent.lookup("#valueLabel");
+										valueLabel.setText(event.getTriggerValue());
+
+										Button closeButton=(Button)eventActionContent.lookup("#closeButton");
+										closeButton.setOnAction(closeEvent -> {
+											app.closeDialog(veil, eventActionContent, eventsPane);
+										});
+
+										app.showDialog(veil, eventActionContent, eventsPane);
+									}
+									catch(IOException ioe){}
+								});
+
+								setGraphic(attributeLink);
+							}
+							else{
+								Text text=new Text("Remote Device Action");
+								setGraphic(text);
+							}
+							setText(null);
+						}
+					}
+				};
+				return cell;
+			}
+		};
+
+		Callback<TableColumn<Event, String>, TableCell<Event, String>> actionsCellFactory=new Callback<TableColumn<Event, String>, TableCell<Event, String>>(){
+			@Override
+			public TableCell call(final TableColumn<Event, String> param){
+				final TableCell<Event, String> cell=new TableCell<Event, String>(){
+					final ToggleButton stateButton=new ToggleButton();
+					final Button deleteButton=new Button();
+
+					@Override
+					public void updateItem(String item, boolean empty){
+						super.updateItem(item, empty);
+
+						stateButton.setStyle("-fx-background-color: transparent;");
+						stateButton.setPadding(new Insets(0, 0, 0, 0));
+						stateButton.setCursor(Cursor.HAND);
+						deleteButton.getStyleClass().add("simple_button");
+						deleteButton.setCursor(Cursor.HAND);
+
+						if(empty){
+							setGraphic(null);
+							setText(null);
+						}
+						else{
+							Event event=getTableView().getItems().get(getIndex());
+							Attribute sourceAttribute=app.getDatabase().getAttributeByAttributeId(event.getSourceEdgeAttributeId());
+							Attribute actionAttribute=app.getDatabase().getAttributeByAttributeId(event.getActionEdgeAttributeId());
+
+							if(event.getState()==EventState.ACTIVE){
+								setToggleButtonState(stateButton, true);
+							}
+							else{
+								setToggleButtonState(stateButton, false);
+							}
+							stateButton.setOnAction(stateEvent -> {
+								boolean canContinue=false;
+
+								if(sourceAttribute.getState()==AttributeState.DEACTIVATED && actionAttribute.getState()==AttributeState.DEACTIVATED){
+									app.showMessageStrip("Warning", "The source and action attributes for this event must be activated.", eventsPane);
+								}
+								else if(sourceAttribute.getState()==AttributeState.DEACTIVATED){
+									app.showMessageStrip("Warning", "The source attribute for this event must be activated.", eventsPane);
+								}
+								else if(actionAttribute.getState()==AttributeState.DEACTIVATED){
+									app.showMessageStrip("Warning", "The action attribute for this event must be activated.", eventsPane);
+								}
+								else{
+									canContinue=true;
+								}
+
+								if(canContinue){
+									Task stateChangeTask=new Task<Void>(){
+										@Override
+										public Void call(){
+											boolean isSelected=stateButton.isSelected();
+											if(isSelected){
+												setToggleButtonState(stateButton, false);
+												app.showMessageStrip("Warning", "Global Event can be activated only by a controller.", eventsPane);
+											}
+											else{
+												event.setState(EventState.DEACTIVATED);
+												boolean updateResult=app.getDatabase().updateEvent(event);
+												if(updateResult){
+													globalEventListTableView.getItems().set(getIndex(), event);
+													app.getAttributeManager().updateEventState(event.getSourceEdgeAttributeId(), event.getAverage());
+
+													app.showMessageStripAndSave("Success", "Event", "Event '"+event.getName()+" ("+event.getId()+")' has been deactivated.", eventsPane);
+													JsonObject jsonObject=new JsonObject();
+													jsonObject.addProperty("command", "changeEventState");
+													jsonObject.addProperty("globalEventId", event.getGlobalEventId());
+													jsonObject.addProperty("state", false);
+													app.getElastosCarrier().sendDataToControllers(jsonObject);
+													if(event.getEdgeType()==EventEdgeType.SOURCE){
+														jsonObject.addProperty("edgeType", EventEdgeType.ACTION.getValue());
+														app.getElastosCarrier().sendDataToDevice(event.getActionDeviceUserId(), jsonObject);
+													}
+													else if(event.getEdgeType()==EventEdgeType.ACTION){
+														jsonObject.addProperty("edgeType", EventEdgeType.SOURCE.getValue());
+														app.getElastosCarrier().sendDataToDevice(event.getSourceDeviceUserId(), jsonObject);
+													}
+												}
+												else{
+													app.showMessageStripAndSave("Error", "Event", "Sorry, something went wrong changing the state of event '"+event.getName()+" ("+event.getId()+")'.", eventsPane);
+												}
+											}
+											return null;
+										}
+									};
+									app.executeAsyncTask(stateChangeTask, eventsPane);
+								}
+								else{
+									setToggleButtonState(stateButton, false);
+								}
+							});
+
+							ImageView deleteImageView=new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("icons/baseline_delete_white_24.png")));
+							deleteImageView.setFitWidth(18);
+							deleteImageView.setFitHeight(18);
+							deleteButton.setGraphic(deleteImageView);
+							deleteButton.setOnAction(deleteEvent -> {
+								try{
+									Region veil=new Region();
+									veil.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4)");
+
+									FXMLLoader loader=new FXMLLoader(getClass().getClassLoader().getResource("scenes/dialog_delete_event.fxml"));
+									AnchorPane deleteDialogContent=(AnchorPane)loader.load();
+
+									AnchorPane titelPane=(AnchorPane)deleteDialogContent.lookup("#titelPane");
+									Text dialogText=(Text)deleteDialogContent.lookup("#dialogText");
+									HBox actionsHbox=(HBox)deleteDialogContent.lookup("#actionsHbox");
+									double dialogHeight=dialogText.getBoundsInLocal().getHeight()+titelPane.getPrefHeight()+actionsHbox.getPrefHeight()+30;
+									deleteDialogContent.setPrefHeight(dialogHeight);
+
+									Button cancelButton=(Button)deleteDialogContent.lookup("#cancelButton");
+									cancelButton.setOnAction(cancelEvent -> {
+										app.closeDialog(veil, deleteDialogContent, eventsPane);
+									});
+									Button confirmButton=(Button)deleteDialogContent.lookup("#confirmButton");
+									confirmButton.setOnAction(confirmEvent -> {
+										Task deleteTask=new Task<Void>(){
+											@Override
+											public Void call(){
+												app.getDatabase().deleteEventByEventId(event.getId());
+												globalEventObservableList.removeAll(event);
+												app.showMessageStripAndSave("Success", "Event", "Event '"+event.getName()+" ("+event.getId()+")' has been deleted.", eventsPane);
+												if(event.getEdgeType()==EventEdgeType.SOURCE){
+													app.getAttributeManager().updateEventState(event.getSourceEdgeAttributeId(), event.getAverage());
+												}
+												return null;
+											}
+										};
+										app.executeAsyncTask(deleteTask, eventsPane);
+										app.closeDialog(veil, deleteDialogContent, eventsPane);
+									});
+
+									app.showDialog(veil, deleteDialogContent, eventsPane);
+								}
+								catch(IOException ioe){}
+							});
+
+							HBox hbox=new HBox(stateButton, deleteButton);
+							hbox.setSpacing(10);
+							hbox.setAlignment(Pos.CENTER_LEFT);
+							setGraphic(hbox);
+							setText(null);
+						}
+					}
+				};
+				return cell;
+			}
+		};
+
+		globalSourceColumn.setCellFactory(eventSourceCellFactory);
+		globalActionColumn.setCellFactory(eventActionCellFactory);
+		globalStateColumn.setCellFactory(stateCellFactory);
+		globalActionsColumn.setCellFactory(actionsCellFactory);
+		globalEventListTableView.setItems(globalEventObservableList);
 	}
 
 	private void setToggleButtonState(ToggleButton toggleButton, boolean state){
@@ -365,34 +699,5 @@ public class EventsController{
 	@FXML
 	private void onAddEvent(){
 		this.app.setAddEventLayout();
-	}
-	
-	private String getAverageLabel(String average){
-		String averageLabel="";
-		if(average.equals("real-time")){
-			averageLabel="Real-Time";
-		}
-		else if(average.equals("1m")){
-			averageLabel="1 Minute";
-		}
-		else if(average.equals("5m")){
-			averageLabel="5 Minutes";
-		}
-		else if(average.equals("15m")){
-			averageLabel="15 Minutes";
-		}
-		else if(average.equals("1h")){
-			averageLabel="1 Hour";
-		}
-		else if(average.equals("3h")){
-			averageLabel="3 Hours";
-		}
-		else if(average.equals("6h")){
-			averageLabel="6 Hours";
-		}
-		else if(average.equals("1d")){
-			averageLabel="1 Day";
-		}
-		return averageLabel;
 	}
 }

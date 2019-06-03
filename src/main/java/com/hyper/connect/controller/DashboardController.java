@@ -1,9 +1,11 @@
 package com.hyper.connect.controller;
 
 import com.hyper.connect.App;
-import com.hyper.connect.model.DataRecord;
-import com.hyper.connect.model.PinnedChart;
+import com.hyper.connect.model.*;
 import com.hyper.connect.management.HistoryManagement;
+import com.hyper.connect.model.enums.AttributeState;
+import com.hyper.connect.model.enums.EventState;
+import com.hyper.connect.model.enums.PinnedChartWindow;
 import com.hyper.connect.util.CustomUtil;
 
 import javafx.fxml.FXML;
@@ -65,12 +67,12 @@ public class DashboardController{
 			@Override
 			public Void call(){
 				String attributeCount=Integer.toString(app.getDatabase().getAttributeCount());
-				String activeAttributeCount=Integer.toString(app.getDatabase().getAttributeCountByState("active"));
+				String activeAttributeCount=Integer.toString(app.getDatabase().getAttributeCountByState(AttributeState.ACTIVE));
 				attributeText.setText(attributeCount);
 				activeAttributeText.setText(activeAttributeCount);
 				
 				String eventCount=Integer.toString(app.getDatabase().getEventCount());
-				String activeEventCount=Integer.toString(app.getDatabase().getEventCountByState("active"));
+				String activeEventCount=Integer.toString(app.getDatabase().getEventCountByState(EventState.ACTIVE));
 				eventText.setText(eventCount);
 				activeEventText.setText(activeEventCount);
 				
@@ -126,19 +128,19 @@ public class DashboardController{
 	}
 	
 	private AnchorPane createLineChart(PinnedChart pinnedChart){
-		String filename=pinnedChart.getAttributeId()+"_"+pinnedChart.getAverage()+".json";
+		String filename=pinnedChart.getAttributeId()+"_"+pinnedChart.getAverage().getShortFilename()+".json";
 		HistoryManagement historyManager=new HistoryManagement();
 		ConcurrentMap<String, String> valueMap=historyManager.getHistory(filename);
 
 		String dateTime="";
-		String window=pinnedChart.getWindow();
-		if(window.equals("Hour")){
+		PinnedChartWindow window=pinnedChart.getWindow();
+		if(window==PinnedChartWindow.HOUR){
 			dateTime=CustomUtil.getCurrentDateTimeByPatternAndTimeZone("yyyy/MM/dd HH", app.getTimeZone());
 		}
-		else if(window.equals("Day")){
+		else if(window==PinnedChartWindow.DAY){
 			dateTime=CustomUtil.getCurrentDateTimeByPatternAndTimeZone("yyyy/MM/dd", app.getTimeZone());
 		}
-		else if(window.equals("Month")){
+		else if(window==PinnedChartWindow.MONTH){
 			dateTime=CustomUtil.getCurrentDateTimeByPatternAndTimeZone("yyyy/MM", app.getTimeZone());
 		}
 		final String finalDateTime=dateTime;
@@ -176,7 +178,7 @@ public class DashboardController{
 		
 		final LineChart<String, Number> lineChart=new LineChart<String, Number>(new CategoryAxis(), new NumberAxis());
 		XYChart.Series series=new XYChart.Series();
-		series.setName("Attribute: "+pinnedChart.getAttributeName()+" ("+pinnedChart.getAttributeId()+") --- Window: "+pinnedChart.getWindow()+" --- Average: "+this.getAverageKeyByAverage(pinnedChart.getAverage()));
+		series.setName("Attribute: "+pinnedChart.getAttributeName()+" ("+pinnedChart.getAttributeId()+") --- Window: "+pinnedChart.getWindow()+" --- Average: "+pinnedChart.getAverage());
 		
 		for(int i=0;i<sortedList.size();i++){
 			series.getData().add(new XYChart.Data(sortedList.get(i).getDateTime(), Double.valueOf(sortedList.get(i).getValue())));
@@ -251,7 +253,7 @@ public class DashboardController{
 		return anchorPane;
 	}
 	
-	private String getAverageKeyByAverage(String average){
+	/*private String getAverageKeyByAverage(String average){
 		String averageKey="";
 		if(average.equals("1m")){
 			averageKey="1 Minute";
@@ -275,5 +277,5 @@ public class DashboardController{
 			averageKey="1 Day";
 		}
 		return average;
-	}
+	}*/
 }

@@ -1,10 +1,12 @@
 package com.hyper.connect.controller;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.hyper.connect.App;
-import com.hyper.connect.model.Sensor;
-import com.hyper.connect.model.Attribute;
-import com.hyper.connect.model.Event;
+import com.hyper.connect.model.*;
 
+import com.hyper.connect.model.enums.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -151,9 +153,9 @@ public class SensorConfigureController{
 								}
 								else{
 									Attribute attribute=getTableView().getItems().get(getIndex());
-									String scriptState=attribute.getScriptState();
-									Text scriptStateText=new Text(scriptState);
-									if(scriptState.equals("valid")){
+									AttributeScriptState scriptState=attribute.getScriptState();
+									Text scriptStateText=new Text(scriptState.toString());
+									if(scriptState==AttributeScriptState.VALID){
 										scriptStateText.setFill(Color.GREEN);
 									}
 									else{
@@ -181,9 +183,9 @@ public class SensorConfigureController{
 								}
 								else{
 									Attribute attribute=getTableView().getItems().get(getIndex());
-									String state=attribute.getState();
-									Text stateText=new Text(state);
-									if(state.equals("active")){
+									AttributeState state=attribute.getState();
+									Text stateText=new Text(state.toString());
+									if(state==AttributeState.ACTIVE){
 										stateText.setFill(Color.GREEN);
 									}
 									else{
@@ -202,7 +204,6 @@ public class SensorConfigureController{
 					@Override
 					public TableCell call(final TableColumn<Attribute, String> param){
 						final TableCell<Attribute, String> cell=new TableCell<Attribute, String>(){
-							//final JFXToggleButton stateButton=new JFXToggleButton();
 							final ToggleButton stateButton=new ToggleButton();
 							final Button scriptButton=new Button();
 							final Button deleteButton=new Button();
@@ -210,15 +211,6 @@ public class SensorConfigureController{
 							@Override
 							public void updateItem(String item, boolean empty){
 								super.updateItem(item, empty);
-
-
-								//stateButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-
-								//stateButton.setSize(8.0);
-
-
-								//stateButton.setToggleColor(Color.valueOf("#007E33"));
-								//stateButton.setToggleLineColor(Color.valueOf("#00C851"));
 
                                 stateButton.setStyle("-fx-background-color: transparent;");
                                 stateButton.setPadding(new Insets(0, 0, 0, 0));
@@ -235,27 +227,30 @@ public class SensorConfigureController{
 								else{
 									Attribute attribute=getTableView().getItems().get(getIndex());
 
-									if(attribute.getState().equals("active")){
-										//stateButton.setSelected(true);
+									if(attribute.getState()==AttributeState.ACTIVE){
                                         setToggleButtonState(stateButton, true);
 									}
 									else{
-										//stateButton.setSelected(false);
                                         setToggleButtonState(stateButton, false);
 									}
 									stateButton.setOnAction(event -> {
-										if(attribute.getScriptState().equals("valid")){
+										if(attribute.getScriptState()==AttributeScriptState.VALID){
 											boolean isSelected=stateButton.isSelected();
 											if(isSelected){
 												Task stateChangeTask=new Task<Void>(){
 													@Override
 													public Void call(){
-														attribute.setState("active");
+														attribute.setState(AttributeState.ACTIVE);
 														boolean updateResult=app.getDatabase().updateAttribute(attribute);
 														if(updateResult){
 															attributeListTableView.getItems().set(getIndex(), attribute);
 															app.showMessageStripAndSave("Success", "Device", "Attribute '"+attribute.getName()+" ("+attribute.getId()+")' has been activated.", sensorConfigurePane);
 															app.getAttributeManager().startAttribute(attribute.getId());
+															JsonObject jsonObject=new JsonObject();
+															jsonObject.addProperty("command", "changeAttributeState");
+															jsonObject.addProperty("id", attribute.getId());
+															jsonObject.addProperty("state", isSelected);
+															app.getElastosCarrier().sendDataToControllers(jsonObject);
 														}
 														else{
 															stateButton.setSelected(false);
@@ -272,7 +267,7 @@ public class SensorConfigureController{
 													Task stateChangeTask=new Task<Void>(){
 														@Override
 														public Void call(){
-															attribute.setState("deactivated");
+															attribute.setState(AttributeState.DEACTIVATED);
 															boolean updateResult=app.getDatabase().updateAttribute(attribute);
 															if(updateResult){
 																attributeListTableView.getItems().set(getIndex(), attribute);
@@ -287,6 +282,11 @@ public class SensorConfigureController{
 														}
 													};
 													app.executeAsyncTask(stateChangeTask, sensorConfigurePane);
+													JsonObject jsonObject=new JsonObject();
+													jsonObject.addProperty("command", "changeAttributeState");
+													jsonObject.addProperty("id", attribute.getId());
+													jsonObject.addProperty("state", false);
+													app.getElastosCarrier().sendDataToControllers(jsonObject);
 												}
 												else{
 													stateButton.setSelected(true);
@@ -313,14 +313,30 @@ public class SensorConfigureController{
 															Task stateChangeTask=new Task<Void>(){
 																@Override
 																public Void call(){
-																	attribute.setState("deactivated");
+																	attribute.setState(AttributeState.DEACTIVATED);
 																	int errorCount=0;
 																	boolean updateResult=app.getDatabase().updateAttribute(attribute);
 																	if(updateResult){
-																		for(int i=0;i<eventList.size();i++){
-																			boolean stateChangeResult=app.getDatabase().setEventStateByEventId(eventList.get(i).getId(), "deactivated");
+																		for(Event event : eventList){
+																			boolean stateChangeResult=app.getDatabase().setEventStateByEventId(event.getId(), EventState.DEACTIVATED);
 																			if(!stateChangeResult){
 																				errorCount++;
+																			}
+																			if(event.getType()==EventType.GLOBAL){
+																				JsonObject jsonObject=new JsonObject();
+																				jsonObject.addProperty("command", "changeEventState");
+																				jsonObject.addProperty("globalEventId", event.getGlobalEventId());
+																				jsonObject.addProperty("state", false);
+																				app.getElastosCarrier().sendDataToControllers(jsonObject);
+
+																				if(event.getEdgeType()==EventEdgeType.SOURCE){
+																					jsonObject.addProperty("edgeType", EventEdgeType.ACTION.getValue());
+																					app.getElastosCarrier().sendDataToDevice(event.getActionDeviceUserId(), jsonObject);
+																				}
+																				else if(event.getEdgeType()==EventEdgeType.ACTION){
+																					jsonObject.addProperty("edgeType", EventEdgeType.SOURCE.getValue());
+																					app.getElastosCarrier().sendDataToDevice(event.getSourceDeviceUserId(), jsonObject);
+																				}
 																			}
 																		}
 																	}
@@ -518,23 +534,41 @@ public class SensorConfigureController{
 			Task addTask=new Task<Void>(){
 				@Override
 				public Void call(){
-					String type=(String)typeChoiceBox.getValue();
+					AttributeType type=null;
+					String stringType=(String)typeChoiceBox.getValue();
+					if(stringType.equals("string")){
+						type=AttributeType.STRING;
+					}
+					else if(stringType.equals("boolean")){
+						type=AttributeType.BOOLEAN;
+					}
+					else if(stringType.equals("integer")){
+						type=AttributeType.INTEGER;
+					}
+					else if(stringType.equals("double")){
+						type=AttributeType.DOUBLE;
+					}
 					String directionValue=(String)directionChoiceBox.getValue();
-					String direction="input";
+					AttributeDirection direction=AttributeDirection.INPUT;
 					String intervalValue=(String)intervalChoiceBox.getValue();
 					int interval=0;
 					if(directionValue.contains("output")){
-						direction="output";
+						direction=AttributeDirection.OUTPUT;
 					}
 					else{
 						interval=Integer.parseInt(intervalValue.substring(0, intervalValue.length()-4));
 					}
 			
-					Attribute newAttribute=app.getDatabase().saveAttribute(new Attribute(0, name, direction, type, interval, "invalid", "deactivated", sensor.getId()));
+					Attribute newAttribute=app.getDatabase().saveAttribute(new Attribute(0, name, direction, type, interval, AttributeScriptState.INVALID, AttributeState.DEACTIVATED, sensor.getId()));
 					if(newAttribute!=null){
 						attributeObservableList.addAll(newAttribute);
 						app.showMessageStripAndSave("Success", "Device", "Attribute '"+newAttribute.getName()+" ("+newAttribute.getId()+")' has been added.", sensorConfigurePane);
 						app.getAttributeManager().addAttribute(newAttribute);
+						JsonElement jsonAttribute=new Gson().toJsonTree(newAttribute);
+						JsonObject jsonObject=new JsonObject();
+						jsonObject.addProperty("command", "addAttribute");
+						jsonObject.add("attribute", jsonAttribute);
+						app.getElastosCarrier().sendDataToControllers(jsonObject);
 					}
 					else{
 						app.showMessageStripAndSave("Error", "Device", "Sorry, something went wrong adding the attribute '"+name+"'.", sensorConfigurePane);

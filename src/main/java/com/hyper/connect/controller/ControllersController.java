@@ -1,6 +1,7 @@
 package com.hyper.connect.controller;
 
 import com.hyper.connect.App;
+import com.hyper.connect.model.enums.ControllerState;
 import com.hyper.connect.util.QRCodeUtil;
 import com.hyper.connect.model.Controller;
 
@@ -79,9 +80,9 @@ public class ControllersController{
 								}
 								else{
 									Controller controller=getTableView().getItems().get(getIndex());
-									String state=controller.getState();
-									Text stateText=new Text(state);
-									if(state.equals("active")){
+									ControllerState state=controller.getState();
+									Text stateText=new Text(state.toString());
+									if(state==ControllerState.ACTIVE){
 										stateText.setFill(Color.GREEN);
 									}
 									else{
@@ -129,7 +130,7 @@ public class ControllersController{
 											public Void call(){
 												boolean acceptResult=app.getElastosCarrier().acceptFriend(controller.getUserId());
 												if(acceptResult){
-													controller.setState("active");
+													controller.setState(ControllerState.ACTIVE);
 													boolean updateResult=app.getDatabase().updateController(controller);
 													if(updateResult){
 														controllerListTableView.getItems().set(getIndex(), controller);
@@ -205,7 +206,7 @@ public class ControllersController{
 									});
 									
 									HBox hbox=new HBox(deleteButton);
-									if(controller.getState().equals("pending")){
+									if(controller.getState()==ControllerState.PENDING){
 										hbox=new HBox(acceptButton, deleteButton);
 										hbox.setSpacing(10);
 									}

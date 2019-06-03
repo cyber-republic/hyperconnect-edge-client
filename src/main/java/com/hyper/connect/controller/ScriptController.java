@@ -1,9 +1,11 @@
 package com.hyper.connect.controller;
 
 import com.hyper.connect.App;
-import com.hyper.connect.model.Sensor;
-import com.hyper.connect.model.Attribute;
+import com.hyper.connect.model.*;
 
+import com.hyper.connect.model.enums.AttributeDirection;
+import com.hyper.connect.model.enums.AttributeScriptState;
+import com.hyper.connect.model.enums.AttributeType;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
@@ -58,7 +60,7 @@ public class ScriptController{
 				
 				Platform.runLater(() -> {
 					scriptTitleText.setText("Script of Attribute '"+attribute.getName()+" ("+attribute.getId()+")'");
-					if(attribute.getDirection().equals("input")){
+					if(attribute.getDirection()==AttributeDirection.INPUT){
 						parameterLabel.setVisible(false);
 						parameterTextField.setVisible(false);
 					}
@@ -72,7 +74,7 @@ public class ScriptController{
 					
 					templateChoiceBox.getSelectionModel().selectedIndexProperty().removeListener(templateListener);
 					templateChoiceBox.getItems().clear();
-					if(attribute.getDirection().equals("input")){
+					if(attribute.getDirection()==AttributeDirection.INPUT){
 						templateChoiceBox.getItems().addAll("-- Load Template --", "Basic", "randomGenerator (Test)");
 					}
 					else{
@@ -111,23 +113,23 @@ public class ScriptController{
 			
 			int index=(Integer)number2;
 			if(index!=0){
-				String attributeType=attribute.getType();
+				AttributeType attributeType=attribute.getType();
 				if(value.equals("Basic")){
-					if(attributeType.equals("string")){
+					if(attributeType==AttributeType.STRING){
 						codeTextArea.setText("#your value\nvalue=\"yourStringValue\"\nprint(value)");
 					}
-					else if(attributeType.equals("boolean")){
+					else if(attributeType==AttributeType.BOOLEAN){
 						codeTextArea.setText("#your value\nvalue=True\nprint(value)");
 					}
-					else if(attributeType.equals("integer")){
+					else if(attributeType==AttributeType.INTEGER){
 						codeTextArea.setText("#your value\nvalue=3\nprint(value)");
 					}
-					else if(attributeType.equals("double")){
+					else if(attributeType==AttributeType.DOUBLE){
 						codeTextArea.setText("#your value\nvalue=3.14\nprint(value)");
 					}
 				}
 				else if(value.equals("randomGenerator (Test)")){
-					if(attributeType.equals("boolean")){
+					if(attributeType==AttributeType.BOOLEAN){
 						codeTextArea.setText("from random import randint\nvalue=True\nrandomInt=randint(0, 1)\nif randomInt==0:\n\tvalue=False\nprint(value)");
 					}
 					else{
@@ -146,16 +148,21 @@ public class ScriptController{
 	
 	@FXML
     private void onButtonEdit(){
-		this.editButton.setVisible(false);
-		this.backButton.setVisible(false);
-		this.validateButton.setVisible(true);
-		this.saveButton.setVisible(true);
-		this.saveButton.setDisable(true);
-		this.cancelButton.setVisible(true);
-		this.parameterLabel.setDisable(false);
-		this.parameterTextField.setDisable(false);
-		this.templateChoiceBox.setDisable(false);
-		this.codeTextArea.setEditable(true);
+		editButton.setVisible(false);
+		editButton.setManaged(false);
+		backButton.setVisible(false);
+		backButton.setManaged(false);
+		validateButton.setVisible(true);
+		validateButton.setManaged(true);
+		saveButton.setVisible(true);
+		saveButton.setManaged(true);
+		saveButton.setDisable(true);
+		cancelButton.setVisible(true);
+		cancelButton.setManaged(true);
+		parameterLabel.setDisable(false);
+		parameterTextField.setDisable(false);
+		templateChoiceBox.setDisable(false);
+		codeTextArea.setEditable(true);
 	}
 	
 	@FXML
@@ -172,7 +179,7 @@ public class ScriptController{
 				String message="";
 				String scriptName=attribute.getId()+"_temp";
 				String scriptContent=codeTextArea.getText();
-				if(attribute.getDirection().equals("input")){
+				if(attribute.getDirection()==AttributeDirection.INPUT){
 					JsonObject resultObject=app.getScriptManager().validatePythonScript(scriptName, scriptContent, attribute.getType());
 					response=resultObject.get("response").getAsString();
 					message=resultObject.get("message").getAsString();
@@ -211,7 +218,7 @@ public class ScriptController{
 				String scriptName=Integer.toString(attribute.getId());
 				String scriptContent=codeTextArea.getText();
 				app.getScriptManager().savePythonScript(scriptName, scriptContent);
-				attribute.setScriptState("valid");
+				attribute.setScriptState(AttributeScriptState.VALID);
 				boolean updateResult=app.getDatabase().updateAttribute(attribute);
 				if(updateResult){
 					app.showMessageStrip("Success", "The script of attribute '"+attribute.getName()+" ("+attribute.getId()+")' has been saved.", scriptPane);
@@ -229,18 +236,23 @@ public class ScriptController{
 	
 	@FXML
     private void onButtonCancel(){
-		this.editButton.setVisible(true);
-		this.backButton.setVisible(true);
-		this.validateButton.setVisible(false);
-		this.saveButton.setVisible(false);
-		this.saveButton.setDisable(true);
-		this.cancelButton.setVisible(false);
-		this.parameterLabel.setDisable(true);
-		this.parameterTextField.setDisable(true);
-		this.parameterTextField.setText("");
-		this.templateChoiceBox.setDisable(true);
-		this.codeTextArea.setEditable(false);
-		this.codeTextArea.setText(this.tempScriptContent);
-		this.templateChoiceBox.getSelectionModel().selectFirst();
+		editButton.setVisible(true);
+		editButton.setManaged(true);
+		backButton.setVisible(true);
+		backButton.setManaged(true);
+		validateButton.setVisible(false);
+		validateButton.setManaged(false);
+		saveButton.setVisible(false);
+		saveButton.setManaged(false);
+		saveButton.setDisable(true);
+		cancelButton.setVisible(false);
+		cancelButton.setManaged(false);
+		parameterLabel.setDisable(true);
+		parameterTextField.setDisable(true);
+		parameterTextField.setText("");
+		templateChoiceBox.setDisable(true);
+		codeTextArea.setEditable(false);
+		codeTextArea.setText(this.tempScriptContent);
+		templateChoiceBox.getSelectionModel().selectFirst();
 	}
 }

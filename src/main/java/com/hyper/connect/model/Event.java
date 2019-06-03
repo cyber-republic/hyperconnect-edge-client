@@ -1,54 +1,74 @@
 package com.hyper.connect.model;
 
+import com.hyper.connect.model.enums.*;
+
 public class Event{
 	private int id;
+	private String globalEventId;
 	private String name;
-	private String state; /*** active, deactivated ***/
-	private String average; /*** real-time, 1m, 5m, 15m, 1h, 3h, 6h, 1d ***/
-	private String condition; /*** equal to, not equal to, greater than, less than ***/
+	private EventType type; /*** local, global ***/
+	private EventState state; /*** active, deactivated ***/
+	private EventAverage average; /*** real-time, 1m, 5m, 15m, 1h, 3h, 6h, 1d ***/
+	private EventCondition condition; /*** equal to, not equal to, greater than, less than ***/
 	private String conditionValue;
 	private String triggerValue;
-	private int sourceSensorId;
-	private int sourceAttributeId;
-	private int actionSensorId;
-	private int actionAttributeId;
+	private String sourceDeviceUserId;
+	private int sourceEdgeSensorId;
+	private int sourceEdgeAttributeId;
+	private String actionDeviceUserId;
+	private int actionEdgeSensorId;
+	private int actionEdgeAttributeId;
+	private EventEdgeType edgeType; /*** source, action ***/
 	
 	public Event(int id, String name){
 		this.id=id;
 		this.name=name;
 	}
-	
-	public Event(int id, String name, String state, String average, String condition, String conditionValue, String triggerValue, int sourceSensorId, int sourceAttributeId, int actionSensorId, int actionAttributeId){
+
+	public Event(int id, String globalEventId, String name, EventType type, EventState state, EventAverage average, EventCondition condition, String conditionValue, String triggerValue, String sourceDeviceUserId, int sourceEdgeSensorId, int sourceEdgeAttributeId, String actionDeviceUserId, int actionEdgeSensorId, int actionEdgeAttributeId, EventEdgeType edgeType){
 		this.id=id;
+		this.globalEventId=globalEventId;
 		this.name=name;
+		this.type=type;
 		this.state=state;
 		this.average=average;
 		this.condition=condition;
 		this.conditionValue=conditionValue;
 		this.triggerValue=triggerValue;
-		this.sourceSensorId=sourceSensorId;
-		this.sourceAttributeId=sourceAttributeId;
-		this.actionSensorId=actionSensorId;
-		this.actionAttributeId=actionAttributeId;
+		this.sourceDeviceUserId=sourceDeviceUserId;
+		this.sourceEdgeSensorId=sourceEdgeSensorId;
+		this.sourceEdgeAttributeId=sourceEdgeAttributeId;
+		this.actionDeviceUserId=actionDeviceUserId;
+		this.actionEdgeSensorId=actionEdgeSensorId;
+		this.actionEdgeAttributeId=actionEdgeAttributeId;
+		this.edgeType=edgeType;
 	}
-	
+
 	public int getId(){
 		return this.id;
+	}
+
+	public String getGlobalEventId(){
+		return globalEventId;
 	}
 
 	public String getName(){
 		return this.name;
 	}
 
-	public String getState(){
+	public EventType getType(){
+		return type;
+	}
+
+	public EventState getState(){
 		return this.state;
 	}
 	
-	public String getAverage(){
+	public EventAverage getAverage(){
 		return this.average;
 	}
 	
-	public String getCondition(){
+	public EventCondition getCondition(){
 		return this.condition;
 	}
 
@@ -59,40 +79,60 @@ public class Event{
 	public String getTriggerValue(){
 		return this.triggerValue;
 	}
-	
-	public int getSourceSensorId(){
-		return this.sourceSensorId;
+
+	public String getSourceDeviceUserId(){
+		return sourceDeviceUserId;
 	}
-	
-	public int getSourceAttributeId(){
-		return this.sourceAttributeId;
+
+	public int getSourceEdgeSensorId(){
+		return sourceEdgeSensorId;
 	}
-	
-	public int getActionSensorId(){
-		return this.actionSensorId;
+
+	public int getSourceEdgeAttributeId(){
+		return sourceEdgeAttributeId;
 	}
-	
-	public int getActionAttributeId(){
-		return this.actionAttributeId;
+
+	public String getActionDeviceUserId(){
+		return actionDeviceUserId;
 	}
-	
+
+	public int getActionEdgeSensorId(){
+		return actionEdgeSensorId;
+	}
+
+	public int getActionEdgeAttributeId(){
+		return actionEdgeAttributeId;
+	}
+
+	public EventEdgeType getEdgeType(){
+		return edgeType;
+	}
+
 	public void setId(int id){
 		this.id=id;
+	}
+
+	public void setGlobalEventId(String globalEventId){
+		this.globalEventId=globalEventId;
 	}
 
 	public void setName(String name){
 		this.name=name;
 	}
 
-	public void setState(String state){
+	public void setType(EventType type){
+		this.type=type;
+	}
+
+	public void setState(EventState state){
 		this.state=state;
 	}
 	
-	public void setAverage(String average){
+	public void setAverage(EventAverage average){
 		this.average=average;
 	}
 	
-	public void setCondition(String condition){
+	public void setCondition(EventCondition condition){
 		this.condition=condition;
 	}
 
@@ -103,36 +143,32 @@ public class Event{
 	public void setTriggerValue(String triggerValue){
 		this.triggerValue=triggerValue;
 	}
-	
-	public void setSourceSensorId(int sourceSensorId){
-		this.sourceSensorId=sourceSensorId;
+
+	public void setSourceDeviceUserId(String sourceDeviceUserId){
+		this.sourceDeviceUserId=sourceDeviceUserId;
 	}
-	
-	public void setSourceAttributeId(int sourceAttributeId){
-		this.sourceAttributeId=sourceAttributeId;
+
+	public void setSourceEdgeSensorId(int sourceEdgeSensorId){
+		this.sourceEdgeSensorId=sourceEdgeSensorId;
 	}
-	
-	public void setActionSensorId(int actionSensorId){
-		this.actionSensorId=actionSensorId;
+
+	public void setSourceEdgeAttributeId(int sourceEdgeAttributeId){
+		this.sourceEdgeAttributeId=sourceEdgeAttributeId;
 	}
-	
-	public void setActionAttributeId(int actionAttributeId){
-		this.actionAttributeId=actionAttributeId;
+
+	public void setActionDeviceUserId(String actionDeviceUserId){
+		this.actionDeviceUserId=actionDeviceUserId;
 	}
-	
-	@Override
-	public String toString(){
-		String event="id: "+id+", "+
-			"name: "+name+", "+
-			"state: "+state+", "+
-			"average: "+average+", "+
-			"condition: "+condition+", "+
-			"conditionValue: "+conditionValue+", "+
-			"triggerValue: "+triggerValue+", "+
-			"sourceSensorId: "+sourceSensorId+", "+
-			"sourceAttributeId: "+sourceAttributeId+", "+
-			"actionSensorId: "+actionSensorId+", "+
-			"actionAttributeId: "+actionAttributeId;
-		return event;
+
+	public void setActionEdgeSensorId(int actionEdgeSensorId){
+		this.actionEdgeSensorId=actionEdgeSensorId;
+	}
+
+	public void setActionEdgeAttributeId(int actionEdgeAttributeId){
+		this.actionEdgeAttributeId=actionEdgeAttributeId;
+	}
+
+	public void setEdgeType(EventEdgeType edgeType){
+		this.edgeType=edgeType;
 	}
 }

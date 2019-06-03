@@ -1,13 +1,7 @@
 package com.hyper.connect.database;
 
-import com.hyper.connect.model.Sensor;
-import com.hyper.connect.model.Attribute;
-import com.hyper.connect.model.Event;
-import com.hyper.connect.model.Controller;
-import com.hyper.connect.model.DataRecord;
-import com.hyper.connect.model.Notification;
-import com.hyper.connect.model.Setting;
-import com.hyper.connect.model.PinnedChart;
+import com.hyper.connect.model.*;
+import com.hyper.connect.model.enums.*;
 import com.hyper.connect.util.CustomUtil;
 
 import java.io.File;
@@ -50,35 +44,41 @@ public class DatabaseSQLite implements DatabaseInterface{
 		String createAttributesTableSql="CREATE TABLE IF NOT EXISTS attributes("+
 			"id INTEGER PRIMARY KEY AUTOINCREMENT,"+
 			"name TEXT NOT NULL,"+
-			"direction TEXT NOT NULL,"+
-			"type TEXT NOT NULL,"+
+			"direction INTEGER NOT NULL,"+
+			"type INTEGER NOT NULL,"+
 			"interval INTEGER NOT NULL,"+
-			"scriptState TEXT NOT NULL,"+
-			"state TEXT NOT NULL,"+
+			"scriptState INTEGER NOT NULL,"+
+			"state INTEGER NOT NULL,"+
 			"sensorId INTEGER NOT NULL,"+
 			"FOREIGN KEY(sensorId) REFERENCES sensors(id)"+
 			");";
 		String createEventsTableSql="CREATE TABLE IF NOT EXISTS events("+
 			"id INTEGER PRIMARY KEY AUTOINCREMENT,"+
+			"globalEventId TEXT NOT NULL,"+
 			"name TEXT NOT NULL,"+
-			"state TEXT NOT NULL,"+
-			"average TEXT NOT NULL,"+
-			"condition TEXT NOT NULL,"+
+			"type INTEGER NOT NULL,"+
+			"state INTEGER NOT NULL,"+
+			"average INTEGER NOT NULL,"+
+			"condition INTEGER NOT NULL,"+
 			"conditionValue TEXT NOT NULL,"+
 			"triggerValue TEXT NOT NULL,"+
-			"sourceSensorId INTEGER NOT NULL,"+
-			"sourceAttributeId INTEGER NOT NULL,"+
-			"actionSensorId INTEGER NOT NULL,"+
-			"actionAttributeId INTEGER NOT NULL,"+
-			"FOREIGN KEY(sourceSensorId) REFERENCES sensors(id),"+
-			"FOREIGN KEY(sourceAttributeId) REFERENCES attributes(id),"+
-			"FOREIGN KEY(actionSensorId) REFERENCES sensors(id),"+
-			"FOREIGN KEY(actionAttributeId) REFERENCES attributes(id)"+
+			"sourceDeviceUserId TEXT NOT NULL,"+
+			"sourceEdgeSensorId INTEGER NOT NULL,"+
+			"sourceEdgeAttributeId INTEGER NOT NULL,"+
+			"actionDeviceUserId TEXT NOT NULL,"+
+			"actionEdgeSensorId INTEGER NOT NULL,"+
+			"actionEdgeAttributeId INTEGER NOT NULL,"+
+			"edgeType INTEGER NOT NULL,"+
+			"FOREIGN KEY(sourceEdgeSensorId) REFERENCES sensors(id),"+
+			"FOREIGN KEY(sourceEdgeAttributeId) REFERENCES attributes(id),"+
+			"FOREIGN KEY(actionEdgeSensorId) REFERENCES sensors(id),"+
+			"FOREIGN KEY(actionEdgeAttributeId) REFERENCES attributes(id)"+
 			");";
 		String createControllersTableSql="CREATE TABLE IF NOT EXISTS controllers("+
 			"id INTEGER PRIMARY KEY AUTOINCREMENT,"+
 			"userId TEXT NOT NULL,"+
-			"state TEXT NOT NULL"+
+			"state INTEGER NOT NULL,"+
+			"connectionState INTEGER NOT NULL"+
 			");";
 		String createDataRecordsTableSql="CREATE TABLE IF NOT EXISTS datarecords("+
 			"id INTEGER PRIMARY KEY AUTOINCREMENT,"+
@@ -103,8 +103,13 @@ public class DatabaseSQLite implements DatabaseInterface{
 			"id INTEGER PRIMARY KEY AUTOINCREMENT,"+
 			"attributeId INTEGER NOT NULL,"+
 			"attributeName TEXT NOT NULL,"+
-			"window TEXT NOT NULL,"+
-			"average TEXT NOT NULL"+
+			"window INTEGER NOT NULL,"+
+			"average INTEGER NOT NULL"+
+			");";
+		String createDevicesTableSql="CREATE TABLE IF NOT EXISTS devices("+
+			"id INTEGER PRIMARY KEY AUTOINCREMENT,"+
+			"userId TEXT NOT NULL,"+
+			"connectionState INTEGER NOT NULL"+
 			");";
 		try{
 			Connection connection=this.getConnection();
@@ -117,6 +122,7 @@ public class DatabaseSQLite implements DatabaseInterface{
 			stmt.execute(createNotificationsTableSql);
 			stmt.execute(createSettingsTableSql);
 			stmt.execute(createPinnedChartsTableSql);
+			stmt.execute(createDevicesTableSql);
 			stmt.close();
 		}
 		catch(SQLException e){
@@ -229,11 +235,11 @@ public class DatabaseSQLite implements DatabaseInterface{
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS);
 			pstmt.setString(1, attribute.getName());
-			pstmt.setString(2, attribute.getDirection());
-            pstmt.setString(3, attribute.getType());
+			pstmt.setInt(2, attribute.getDirection().getValue());
+            pstmt.setInt(3, attribute.getType().getValue());
 			pstmt.setInt(4, attribute.getInterval());
-            pstmt.setString(5, attribute.getScriptState());
-			pstmt.setString(6, attribute.getState());
+            pstmt.setInt(5, attribute.getScriptState().getValue());
+			pstmt.setInt(6, attribute.getState().getValue());
             pstmt.setInt(7, attribute.getSensorId());
             pstmt.executeUpdate();
 			
@@ -259,11 +265,11 @@ public class DatabaseSQLite implements DatabaseInterface{
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(updateSql);
 			pstmt.setString(1, attribute.getName());
-			pstmt.setString(2, attribute.getDirection());
-            pstmt.setString(3, attribute.getType());
+			pstmt.setInt(2, attribute.getDirection().getValue());
+            pstmt.setInt(3, attribute.getType().getValue());
 			pstmt.setInt(4, attribute.getInterval());
-            pstmt.setString(5, attribute.getScriptState());
-			pstmt.setString(6, attribute.getState());
+            pstmt.setInt(5, attribute.getScriptState().getValue());
+			pstmt.setInt(6, attribute.getState().getValue());
             pstmt.setInt(7, attribute.getSensorId());
 			pstmt.setInt(8, attribute.getId());
             pstmt.executeUpdate();
@@ -302,11 +308,11 @@ public class DatabaseSQLite implements DatabaseInterface{
 			if(rs.next()){
 				attribute=new Attribute(rs.getInt("id"),
 					rs.getString("name"),
-					rs.getString("direction"),
-					rs.getString("type"),
+					AttributeDirection.valueOf(rs.getInt("direction")),
+					AttributeType.valueOf(rs.getInt("type")),
 					rs.getInt("interval"),
-					rs.getString("scriptState"),
-					rs.getString("state"),
+					AttributeScriptState.valueOf(rs.getInt("scriptState")),
+					AttributeState.valueOf(rs.getInt("state")),
 					rs.getInt("sensorId"));
 			}
 			rs.close();
@@ -329,11 +335,11 @@ public class DatabaseSQLite implements DatabaseInterface{
 			while(rs.next()){
 				Attribute attribute=new Attribute(rs.getInt("id"),
 					rs.getString("name"),
-					rs.getString("direction"),
-					rs.getString("type"),
+					AttributeDirection.valueOf(rs.getInt("direction")),
+					AttributeType.valueOf(rs.getInt("type")),
 					rs.getInt("interval"),
-					rs.getString("scriptState"),
-					rs.getString("state"),
+					AttributeScriptState.valueOf(rs.getInt("scriptState")),
+					AttributeState.valueOf(rs.getInt("state")),
 					rs.getInt("sensorId"));
 				attributeList.add(attribute);
 			}
@@ -346,22 +352,22 @@ public class DatabaseSQLite implements DatabaseInterface{
 		return attributeList;
 	}
 	
-	public ArrayList<Attribute> getAttributeListBySensorIdAndDirection(int sensorId, String direction){
+	public ArrayList<Attribute> getAttributeListBySensorIdAndDirection(int sensorId, AttributeDirection direction){
 		ArrayList<Attribute> attributeList=new ArrayList<Attribute>();
 		String selectSql="SELECT * FROM attributes WHERE sensorId=? AND direction=?;";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
 			pstmt.setInt(1, sensorId);
-			pstmt.setString(2, direction);
+			pstmt.setInt(2, direction.getValue());
 			ResultSet rs=pstmt.executeQuery();
 			while(rs.next()){
 				Attribute attribute=new Attribute(rs.getInt("id"),
 					rs.getString("name"),
-					rs.getString("direction"),
-					rs.getString("type"),
+					AttributeDirection.valueOf(rs.getInt("direction")),
+					AttributeType.valueOf(rs.getInt("type")),
 					rs.getInt("interval"),
-					rs.getString("scriptState"),
-					rs.getString("state"),
+					AttributeScriptState.valueOf(rs.getInt("scriptState")),
+					AttributeState.valueOf(rs.getInt("state")),
 					rs.getInt("sensorId"));
 				attributeList.add(attribute);
 			}
@@ -374,23 +380,23 @@ public class DatabaseSQLite implements DatabaseInterface{
 		return attributeList;
 	}
 	
-	public ArrayList<Attribute> getActiveAttributeListBySensorIdAndDirection(int sensorId, String direction){
+	public ArrayList<Attribute> getActiveAttributeListBySensorIdAndDirection(int sensorId, AttributeDirection direction){
 		ArrayList<Attribute> attributeList=new ArrayList<Attribute>();
 		String selectSql="SELECT * FROM attributes WHERE sensorId=? AND direction=? AND state=?;";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
 			pstmt.setInt(1, sensorId);
-			pstmt.setString(2, direction);
-			pstmt.setString(3, "active");
+			pstmt.setInt(2, direction.getValue());
+			pstmt.setInt(3, AttributeState.ACTIVE.getValue());
 			ResultSet rs=pstmt.executeQuery();
 			while(rs.next()){
 				Attribute attribute=new Attribute(rs.getInt("id"),
 					rs.getString("name"),
-					rs.getString("direction"),
-					rs.getString("type"),
+					AttributeDirection.valueOf(rs.getInt("direction")),
+					AttributeType.valueOf(rs.getInt("type")),
 					rs.getInt("interval"),
-					rs.getString("scriptState"),
-					rs.getString("state"),
+					AttributeScriptState.valueOf(rs.getInt("scriptState")),
+					AttributeState.valueOf(rs.getInt("state")),
 					rs.getInt("sensorId"));
 				attributeList.add(attribute);
 			}
@@ -403,23 +409,23 @@ public class DatabaseSQLite implements DatabaseInterface{
 		return attributeList;
 	}
 	
-	public ArrayList<Attribute> getValidAttributeListBySensorIdAndDirection(int sensorId, String direction){
+	public ArrayList<Attribute> getValidAttributeListBySensorIdAndDirection(int sensorId, AttributeDirection direction){
 		ArrayList<Attribute> attributeList=new ArrayList<Attribute>();
 		String selectSql="SELECT * FROM attributes WHERE sensorId=? AND direction=? AND scriptState=?;";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
 			pstmt.setInt(1, sensorId);
-			pstmt.setString(2, direction);
-			pstmt.setString(3, "valid");
+			pstmt.setInt(2, direction.getValue());
+			pstmt.setInt(3, AttributeScriptState.VALID.getValue());
 			ResultSet rs=pstmt.executeQuery();
 			while(rs.next()){
 				Attribute attribute=new Attribute(rs.getInt("id"),
 					rs.getString("name"),
-					rs.getString("direction"),
-					rs.getString("type"),
+					AttributeDirection.valueOf(rs.getInt("direction")),
+					AttributeType.valueOf(rs.getInt("type")),
 					rs.getInt("interval"),
-					rs.getString("scriptState"),
-					rs.getString("state"),
+					AttributeScriptState.valueOf(rs.getInt("scriptState")),
+					AttributeState.valueOf(rs.getInt("state")),
 					rs.getInt("sensorId"));
 				attributeList.add(attribute);
 			}
@@ -442,11 +448,11 @@ public class DatabaseSQLite implements DatabaseInterface{
 			while(rs.next()){
 				Attribute attribute=new Attribute(rs.getInt("id"),
 					rs.getString("name"),
-					rs.getString("direction"),
-					rs.getString("type"),
+					AttributeDirection.valueOf(rs.getInt("direction")),
+					AttributeType.valueOf(rs.getInt("type")),
 					rs.getInt("interval"),
-					rs.getString("scriptState"),
-					rs.getString("state"),
+					AttributeScriptState.valueOf(rs.getInt("scriptState")),
+					AttributeState.valueOf(rs.getInt("state")),
 					rs.getInt("sensorId"));
 				attributeList.add(attribute);
 			}
@@ -479,12 +485,12 @@ public class DatabaseSQLite implements DatabaseInterface{
 		return count;
 	}
 	
-	public int getAttributeCountByState(String state){
+	public int getAttributeCountByState(AttributeState state){
 		int count=0;
 		String selectSql="SELECT COUNT(*) AS total FROM attributes WHERE state=?;";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
-			pstmt.setString(1, state);
+			pstmt.setInt(1, state.getValue());
 			ResultSet rs=pstmt.executeQuery();
 			rs.next();
 			count=rs.getInt("total");
@@ -498,22 +504,27 @@ public class DatabaseSQLite implements DatabaseInterface{
 		}
 		return count;
 	}
-	
+
 	public Event saveEvent(Event event){
 		Event newEvent=null;
-		String insertSql="INSERT INTO events(name, state, average, condition, conditionValue, triggerValue, sourceSensorId, sourceAttributeId, actionSensorId, actionAttributeId) VALUES(?,?,?,?,?,?,?,?,?,?);";
+		String insertSql="INSERT INTO events(globalEventId, name, type, state, average, condition, conditionValue, triggerValue, sourceDeviceUserId, sourceEdgeSensorId, sourceEdgeAttributeId, actionDeviceUserId, actionEdgeSensorId, actionEdgeAttributeId, edgeType) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(insertSql);
-			pstmt.setString(1, event.getName());
-			pstmt.setString(2, event.getState());
-            pstmt.setString(3, event.getAverage());
-			pstmt.setString(4, event.getCondition());
-            pstmt.setString(5, event.getConditionValue());
-			pstmt.setString(6, event.getTriggerValue());
-            pstmt.setInt(7, event.getSourceSensorId());
-			pstmt.setInt(8, event.getSourceAttributeId());
-			pstmt.setInt(9, event.getActionSensorId());
-			pstmt.setInt(10, event.getActionAttributeId());
+			pstmt.setString(1, event.getGlobalEventId());
+			pstmt.setString(2, event.getName());
+			pstmt.setInt(3, event.getType().getValue());
+			pstmt.setInt(4, event.getState().getValue());
+            pstmt.setInt(5, event.getAverage().getValue());
+			pstmt.setInt(6, event.getCondition().getValue());
+            pstmt.setString(7, event.getConditionValue());
+			pstmt.setString(8, event.getTriggerValue());
+            pstmt.setString(9, event.getSourceDeviceUserId());
+			pstmt.setInt(10, event.getSourceEdgeSensorId());
+			pstmt.setInt(11, event.getSourceEdgeAttributeId());
+			pstmt.setString(12, event.getActionDeviceUserId());
+			pstmt.setInt(13, event.getActionEdgeSensorId());
+			pstmt.setInt(14, event.getActionEdgeAttributeId());
+			pstmt.setInt(15, event.getEdgeType().getValue());
             pstmt.executeUpdate();
 			
 			ResultSet rs=pstmt.getGeneratedKeys();
@@ -531,23 +542,28 @@ public class DatabaseSQLite implements DatabaseInterface{
 		}
 		return newEvent;
 	}
-	
+
 	public boolean updateEvent(Event event){
 		boolean response=true;
-		String updateSql="UPDATE events SET name=?, state=?, average=?, condition=?, conditionValue=?, triggerValue=?, sourceSensorId=?, sourceAttributeId=?, actionSensorId=?, actionAttributeId=? WHERE id=?;";
+		String updateSql="UPDATE events SET globalEventId=?, name=?, type=?, state=?, average=?, condition=?, conditionValue=?, triggerValue=?, sourceDeviceUserId=?, sourceEdgeSensorId=?, sourceEdgeAttributeId=?, actionDeviceUserId=?, actionEdgeSensorId=?, actionEdgeAttributeId=?, edgeType=? WHERE id=?;";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(updateSql);
-			pstmt.setString(1, event.getName());
-			pstmt.setString(2, event.getState());
-            pstmt.setString(3, event.getAverage());
-			pstmt.setString(4, event.getCondition());
-            pstmt.setString(5, event.getConditionValue());
-			pstmt.setString(6, event.getTriggerValue());
-            pstmt.setInt(7, event.getSourceSensorId());
-			pstmt.setInt(8, event.getSourceAttributeId());
-			pstmt.setInt(9, event.getActionSensorId());
-			pstmt.setInt(10, event.getActionAttributeId());
-			pstmt.setInt(11, event.getId());
+			pstmt.setString(1, event.getGlobalEventId());
+			pstmt.setString(2, event.getName());
+			pstmt.setInt(3, event.getType().getValue());
+			pstmt.setInt(4, event.getState().getValue());
+			pstmt.setInt(5, event.getAverage().getValue());
+			pstmt.setInt(6, event.getCondition().getValue());
+			pstmt.setString(7, event.getConditionValue());
+			pstmt.setString(8, event.getTriggerValue());
+			pstmt.setString(9, event.getSourceDeviceUserId());
+			pstmt.setInt(10, event.getSourceEdgeSensorId());
+			pstmt.setInt(11, event.getSourceEdgeAttributeId());
+			pstmt.setString(12, event.getActionDeviceUserId());
+			pstmt.setInt(13, event.getActionEdgeSensorId());
+			pstmt.setInt(14, event.getActionEdgeAttributeId());
+			pstmt.setInt(15, event.getEdgeType().getValue());
+			pstmt.setInt(16, event.getId());
             pstmt.executeUpdate();
 			pstmt.close();
 		}
@@ -557,13 +573,29 @@ public class DatabaseSQLite implements DatabaseInterface{
 		}
 		return response;
 	}
+
+	public boolean setEventListState(EventState state){
+		boolean response=true;
+		String updateSql="UPDATE events SET state=?;";
+		try{
+			PreparedStatement pstmt=this.getConnection().prepareStatement(updateSql);
+			pstmt.setInt(1, state.getValue());
+			pstmt.executeUpdate();
+			pstmt.close();
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+			response=false;
+		}
+		return response;
+	}
 	
-	public boolean setEventStateByEventId(int eventId, String state){
+	public boolean setEventStateByEventId(int eventId, EventState state){
 		boolean response=true;
 		String updateSql="UPDATE events SET state=? WHERE id=?;";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(updateSql);
-			pstmt.setString(1, state);
+			pstmt.setInt(1, state.getValue());
 			pstmt.setInt(2, eventId);
             pstmt.executeUpdate();
 			pstmt.close();
@@ -590,7 +622,7 @@ public class DatabaseSQLite implements DatabaseInterface{
 		}
 		return response;
 	}
-	
+
 	public Event getEventByEventId(int eventId){
 		Event event=null;
 		String selectSql="SELECT * FROM events WHERE id=?;";
@@ -600,16 +632,56 @@ public class DatabaseSQLite implements DatabaseInterface{
 			ResultSet rs=pstmt.executeQuery();
 			if(rs.next()){
 				event=new Event(rs.getInt("id"),
+					rs.getString("globalEventId"),
 					rs.getString("name"),
-					rs.getString("state"),
-					rs.getString("average"),
-					rs.getString("condition"),
+					EventType.valueOf(rs.getInt("type")),
+					EventState.valueOf(rs.getInt("state")),
+					EventAverage.valueOf(rs.getInt("average")),
+					EventCondition.valueOf(rs.getInt("condition")),
 					rs.getString("conditionValue"),
 					rs.getString("triggerValue"),
-					rs.getInt("sourceSensorId"),
-					rs.getInt("sourceAttributeId"),
-					rs.getInt("actionSensorId"),
-					rs.getInt("actionAttributeId"));
+					rs.getString("sourceDeviceUserId"),
+					rs.getInt("sourceEdgeSensorId"),
+					rs.getInt("sourceEdgeAttributeId"),
+					rs.getString("actionDeviceUserId"),
+					rs.getInt("actionEdgeSensorId"),
+					rs.getInt("actionEdgeAttributeId"),
+					EventEdgeType.valueOf(rs.getInt("edgeType")));
+			}
+			rs.close();
+			pstmt.close();
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+			event=null;
+		}
+		return event;
+	}
+
+	public Event getEventByGlobalEventId(String globalEventId){
+		Event event=null;
+		String selectSql="SELECT * FROM events WHERE globalEventId=?;";
+		try{
+			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
+			pstmt.setString(1, globalEventId);
+			ResultSet rs=pstmt.executeQuery();
+			if(rs.next()){
+				event=new Event(rs.getInt("id"),
+						rs.getString("globalEventId"),
+						rs.getString("name"),
+						EventType.valueOf(rs.getInt("type")),
+						EventState.valueOf(rs.getInt("state")),
+						EventAverage.valueOf(rs.getInt("average")),
+						EventCondition.valueOf(rs.getInt("condition")),
+						rs.getString("conditionValue"),
+						rs.getString("triggerValue"),
+						rs.getString("sourceDeviceUserId"),
+						rs.getInt("sourceEdgeSensorId"),
+						rs.getInt("sourceEdgeAttributeId"),
+						rs.getString("actionDeviceUserId"),
+						rs.getInt("actionEdgeSensorId"),
+						rs.getInt("actionEdgeAttributeId"),
+						EventEdgeType.valueOf(rs.getInt("edgeType")));
 			}
 			rs.close();
 			pstmt.close();
@@ -621,27 +693,32 @@ public class DatabaseSQLite implements DatabaseInterface{
 		return event;
 	}
 	
-	public ArrayList<Event> getActiveEventListByAverageAndSourceAttributeId(String average, int sourceAttributeId){
+	public ArrayList<Event> getActiveEventListByAverageAndSourceAttributeId(EventAverage average, int sourceAttributeId){
 		ArrayList<Event> eventList=new ArrayList<Event>();
-		String selectSql="SELECT * FROM events WHERE average=? AND sourceAttributeId=? AND state=?;";
+		String selectSql="SELECT * FROM events WHERE average=? AND sourceEdgeAttributeId=? AND state=?;";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
-			pstmt.setString(1, average);
+			pstmt.setInt(1, average.getValue());
 			pstmt.setInt(2, sourceAttributeId);
-			pstmt.setString(3, "active");
+			pstmt.setInt(3, EventState.ACTIVE.getValue());
 			ResultSet rs=pstmt.executeQuery();
 			while(rs.next()){
 				Event event=new Event(rs.getInt("id"),
-					rs.getString("name"),
-					rs.getString("state"),
-					rs.getString("average"),
-					rs.getString("condition"),
-					rs.getString("conditionValue"),
-					rs.getString("triggerValue"),
-					rs.getInt("sourceSensorId"),
-					rs.getInt("sourceAttributeId"),
-					rs.getInt("actionSensorId"),
-					rs.getInt("actionAttributeId"));
+						rs.getString("globalEventId"),
+						rs.getString("name"),
+						EventType.valueOf(rs.getInt("type")),
+						EventState.valueOf(rs.getInt("state")),
+						EventAverage.valueOf(rs.getInt("average")),
+						EventCondition.valueOf(rs.getInt("condition")),
+						rs.getString("conditionValue"),
+						rs.getString("triggerValue"),
+						rs.getString("sourceDeviceUserId"),
+						rs.getInt("sourceEdgeSensorId"),
+						rs.getInt("sourceEdgeAttributeId"),
+						rs.getString("actionDeviceUserId"),
+						rs.getInt("actionEdgeSensorId"),
+						rs.getInt("actionEdgeAttributeId"),
+						EventEdgeType.valueOf(rs.getInt("edgeType")));
 				eventList.add(event);
 			}
 			rs.close();
@@ -662,16 +739,21 @@ public class DatabaseSQLite implements DatabaseInterface{
 			ResultSet rs=stmt.executeQuery(selectSql);
 			while(rs.next()){
 				Event event=new Event(rs.getInt("id"),
-					rs.getString("name"),
-					rs.getString("state"),
-					rs.getString("average"),
-					rs.getString("condition"),
-					rs.getString("conditionValue"),
-					rs.getString("triggerValue"),
-					rs.getInt("sourceSensorId"),
-					rs.getInt("sourceAttributeId"),
-					rs.getInt("actionSensorId"),
-					rs.getInt("actionAttributeId"));
+						rs.getString("globalEventId"),
+						rs.getString("name"),
+						EventType.valueOf(rs.getInt("type")),
+						EventState.valueOf(rs.getInt("state")),
+						EventAverage.valueOf(rs.getInt("average")),
+						EventCondition.valueOf(rs.getInt("condition")),
+						rs.getString("conditionValue"),
+						rs.getString("triggerValue"),
+						rs.getString("sourceDeviceUserId"),
+						rs.getInt("sourceEdgeSensorId"),
+						rs.getInt("sourceEdgeAttributeId"),
+						rs.getString("actionDeviceUserId"),
+						rs.getInt("actionEdgeSensorId"),
+						rs.getInt("actionEdgeAttributeId"),
+						EventEdgeType.valueOf(rs.getInt("edgeType")));
 				eventList.add(event);
 			}
 			rs.close();
@@ -682,10 +764,45 @@ public class DatabaseSQLite implements DatabaseInterface{
 		}
 		return eventList;
 	}
+
+	public ArrayList<Event> getEventListByType(EventType type){
+		ArrayList<Event> eventList=new ArrayList<Event>();
+		String selectSql="SELECT * FROM events WHERE type=?;";
+		try{
+			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
+			pstmt.setInt(1, type.getValue());
+			ResultSet rs=pstmt.executeQuery();
+			while(rs.next()){
+				Event event=new Event(rs.getInt("id"),
+						rs.getString("globalEventId"),
+						rs.getString("name"),
+						EventType.valueOf(rs.getInt("type")),
+						EventState.valueOf(rs.getInt("state")),
+						EventAverage.valueOf(rs.getInt("average")),
+						EventCondition.valueOf(rs.getInt("condition")),
+						rs.getString("conditionValue"),
+						rs.getString("triggerValue"),
+						rs.getString("sourceDeviceUserId"),
+						rs.getInt("sourceEdgeSensorId"),
+						rs.getInt("sourceEdgeAttributeId"),
+						rs.getString("actionDeviceUserId"),
+						rs.getInt("actionEdgeSensorId"),
+						rs.getInt("actionEdgeAttributeId"),
+						EventEdgeType.valueOf(rs.getInt("edgeType")));
+				eventList.add(event);
+			}
+			rs.close();
+			pstmt.close();
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+		}
+		return eventList;
+	}
 	
 	public ArrayList<Event> getEventListOnlyNameAndIdByAttributeId(int attributeId){
 		ArrayList<Event> eventList=new ArrayList<Event>();
-		String selectSql="SELECT id, name FROM events WHERE sourceAttributeId=? OR actionAttributeId=?;";
+		String selectSql="SELECT id, name FROM events WHERE sourceEdgeAttributeId=? OR actionEdgeAttributeId=?;";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
 			pstmt.setInt(1, attributeId);
@@ -707,10 +824,10 @@ public class DatabaseSQLite implements DatabaseInterface{
 	
 	public ArrayList<Event> getActiveEventListOnlyNameAndIdByAttributeId(int attributeId){
 		ArrayList<Event> eventList=new ArrayList<Event>();
-		String selectSql="SELECT id, name FROM events WHERE state=? AND (sourceAttributeId=? OR actionAttributeId=?);";
+		String selectSql="SELECT id, name FROM events WHERE state=? AND (sourceEdgeAttributeId=? OR actionEdgeAttributeId=?);";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
-			pstmt.setString(1, "active");
+			pstmt.setInt(1, EventState.ACTIVE.getValue());
 			pstmt.setInt(2, attributeId);
 			pstmt.setInt(3, attributeId);
 			ResultSet rs=pstmt.executeQuery();
@@ -748,12 +865,12 @@ public class DatabaseSQLite implements DatabaseInterface{
 		return count;
 	}
 	
-	public int getEventCountByState(String state){
+	public int getEventCountByState(EventState state){
 		int count=0;
 		String selectSql="SELECT COUNT(*) AS total FROM events WHERE state=?;";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
-			pstmt.setString(1, state);
+			pstmt.setInt(1, state.getValue());
 			ResultSet rs=pstmt.executeQuery();
 			rs.next();
 			count=rs.getInt("total");
@@ -770,11 +887,12 @@ public class DatabaseSQLite implements DatabaseInterface{
 	
 	public Controller saveController(Controller controller){
 		Controller newController=null;
-		String insertSql="INSERT INTO controllers(userId, state) VALUES(?,?);";
+		String insertSql="INSERT INTO controllers(userId, state, connectionState) VALUES(?,?,?);";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS);
 			pstmt.setString(1, controller.getUserId());
-            pstmt.setString(2, controller.getState());
+            pstmt.setInt(2, controller.getState().getValue());
+			pstmt.setInt(3, controller.getConnectionState().getValue());
             pstmt.executeUpdate();
 			
 			ResultSet rs=pstmt.getGeneratedKeys();
@@ -795,12 +913,13 @@ public class DatabaseSQLite implements DatabaseInterface{
 	
 	public boolean updateController(Controller controller){
 		boolean response=true;
-		String updateSql="UPDATE controllers SET userId=?, state=? WHERE id=?;";
+		String updateSql="UPDATE controllers SET userId=?, state=?, connectionState=? WHERE id=?;";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(updateSql);
 			pstmt.setString(1, controller.getUserId());
-            pstmt.setString(2, controller.getState());
-			pstmt.setInt(3, controller.getId());
+			pstmt.setInt(2, controller.getState().getValue());
+			pstmt.setInt(3, controller.getConnectionState().getValue());
+			pstmt.setInt(4, controller.getId());
             pstmt.executeUpdate();
 			pstmt.close();
 		}
@@ -835,7 +954,10 @@ public class DatabaseSQLite implements DatabaseInterface{
 			pstmt.setInt(1, controllerId);
 			ResultSet rs=pstmt.executeQuery();
 			if(rs.next()){
-				controller=new Controller(rs.getInt("id"), rs.getString("userId"), rs.getString("state"));
+				controller=new Controller(rs.getInt("id"),
+						rs.getString("userId"),
+						ControllerState.valueOf(rs.getInt("state")),
+						ControllerConnectionState.valueOf(rs.getInt("connectionState")));
 			}
 			rs.close();
 			pstmt.close();
@@ -855,7 +977,10 @@ public class DatabaseSQLite implements DatabaseInterface{
 			pstmt.setString(1, userId);
 			ResultSet rs=pstmt.executeQuery();
 			if(rs.next()){
-				controller=new Controller(rs.getInt("id"), rs.getString("userId"), rs.getString("state"));
+				controller=new Controller(rs.getInt("id"),
+						rs.getString("userId"),
+						ControllerState.valueOf(rs.getInt("state")),
+						ControllerConnectionState.valueOf(rs.getInt("connectionState")));
 			}
 			rs.close();
 			pstmt.close();
@@ -875,11 +1000,37 @@ public class DatabaseSQLite implements DatabaseInterface{
 			Statement stmt=connection.createStatement();
 			ResultSet rs=stmt.executeQuery(selectSql);
 			while(rs.next()){
-				Controller controller=new Controller(rs.getInt("id"), rs.getString("userId"), rs.getString("state"));
+				Controller controller=new Controller(rs.getInt("id"),
+						rs.getString("userId"),
+						ControllerState.valueOf(rs.getInt("state")),
+						ControllerConnectionState.valueOf(rs.getInt("connectionState")));
 				controllerList.add(controller);
 			}
 			rs.close();
 			stmt.close();
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+		}
+		return controllerList;
+	}
+
+	public ArrayList<Controller> getOnlineControllerList(){
+		ArrayList<Controller> controllerList=new ArrayList<Controller>();
+		String selectSql="SELECT * FROM controllers WHERE connectionState=?;";
+		try{
+			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
+			pstmt.setInt(1, ControllerConnectionState.ONLINE.getValue());
+			ResultSet rs=pstmt.executeQuery();
+			while(rs.next()){
+				Controller controller=new Controller(rs.getInt("id"),
+						rs.getString("userId"),
+						ControllerState.valueOf(rs.getInt("state")),
+						ControllerConnectionState.valueOf(rs.getInt("connectionState")));
+				controllerList.add(controller);
+			}
+			rs.close();
+			pstmt.close();
 		}
 		catch(SQLException e){
 			System.out.println(e.getMessage());
@@ -1149,8 +1300,8 @@ public class DatabaseSQLite implements DatabaseInterface{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS);
 			pstmt.setInt(1, pinnedChart.getAttributeId());
             pstmt.setString(2, pinnedChart.getAttributeName());
-			pstmt.setString(3, pinnedChart.getWindow());
-            pstmt.setString(4, pinnedChart.getAverage());
+			pstmt.setInt(3, pinnedChart.getWindow().getValue());
+            pstmt.setInt(4, pinnedChart.getAverage().getValue());
             pstmt.executeUpdate();
 			
 			ResultSet rs=pstmt.getGeneratedKeys();
@@ -1193,7 +1344,11 @@ public class DatabaseSQLite implements DatabaseInterface{
 			pstmt.setInt(1, attributeId);
 			ResultSet rs=pstmt.executeQuery();
 			if(rs.next()){
-				pinnedChart=new PinnedChart(rs.getInt("id"), rs.getInt("attributeId"), rs.getString("attributeName"), rs.getString("window"), rs.getString("average"));
+				pinnedChart=new PinnedChart(rs.getInt("id"),
+						rs.getInt("attributeId"),
+						rs.getString("attributeName"),
+						PinnedChartWindow.valueOf(rs.getInt("window")),
+						EventAverage.valueOf(rs.getInt("average")));
 			}
 			rs.close();
 			pstmt.close();
@@ -1205,17 +1360,21 @@ public class DatabaseSQLite implements DatabaseInterface{
 		return pinnedChart;
 	}
 	
-	public PinnedChart getPinnedChartByParameters(int attributeId, String window, String average){
+	public PinnedChart getPinnedChartByParameters(int attributeId, PinnedChartWindow window, EventAverage average){
 		PinnedChart pinnedChart=null;
 		String selectSql="SELECT * FROM pinnedcharts WHERE attributeId=? AND window=? AND average=?;";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
 			pstmt.setInt(1, attributeId);
-			pstmt.setString(2, window);
-			pstmt.setString(3, average);
+			pstmt.setInt(2, window.getValue());
+			pstmt.setInt(3, average.getValue());
 			ResultSet rs=pstmt.executeQuery();
 			if(rs.next()){
-				pinnedChart=new PinnedChart(rs.getInt("id"), rs.getInt("attributeId"), rs.getString("attributeName"), rs.getString("window"), rs.getString("average"));
+				pinnedChart=new PinnedChart(rs.getInt("id"),
+						rs.getInt("attributeId"),
+						rs.getString("attributeName"),
+						PinnedChartWindow.valueOf(rs.getInt("window")),
+						EventAverage.valueOf(rs.getInt("average")));
 			}
 			rs.close();
 			pstmt.close();
@@ -1238,8 +1397,8 @@ public class DatabaseSQLite implements DatabaseInterface{
 				PinnedChart pinnedChart=new PinnedChart(rs.getInt("id"),
 					rs.getInt("attributeId"),
 					rs.getString("attributeName"),
-					rs.getString("window"),
-					rs.getString("average"));
+					PinnedChartWindow.valueOf(rs.getInt("window")),
+					EventAverage.valueOf(rs.getInt("average")));
 				pinnedChartList.add(pinnedChart);
 			}
 			rs.close();
@@ -1262,8 +1421,8 @@ public class DatabaseSQLite implements DatabaseInterface{
 				PinnedChart pinnedChart=new PinnedChart(rs.getInt("id"),
 					rs.getInt("attributeId"),
 					rs.getString("attributeName"),
-					rs.getString("window"),
-					rs.getString("average"));
+					PinnedChartWindow.valueOf(rs.getInt("window")),
+					EventAverage.valueOf(rs.getInt("average")));
 				pinnedChartList.add(pinnedChart);
 			}
 			rs.close();
@@ -1273,5 +1432,168 @@ public class DatabaseSQLite implements DatabaseInterface{
 			System.out.println(e.getMessage());
 		}
 		return pinnedChartList;
+	}
+
+	public Device saveDevice(Device device){
+		Device newDevice=null;
+		String insertSql="INSERT INTO devices(userId, connectionState) VALUES(?,?);";
+		try{
+			PreparedStatement pstmt=this.getConnection().prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS);
+			pstmt.setString(1, device.getUserId());
+			pstmt.setInt(2, device.getConnectionState().getValue());
+			pstmt.executeUpdate();
+
+			ResultSet rs=pstmt.getGeneratedKeys();
+			rs.next();
+			int createdId=rs.getInt(1);
+			newDevice=device;
+			newDevice.setId(createdId);
+
+			rs.close();
+			pstmt.close();
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+			newDevice=null;
+		}
+		return newDevice;
+	}
+
+	public boolean updateDevice(Device device){
+		boolean response=true;
+		String updateSql="UPDATE devices SET userId=?, connectionState=? WHERE id=?;";
+		try{
+			PreparedStatement pstmt=this.getConnection().prepareStatement(updateSql);
+			pstmt.setString(1, device.getUserId());
+			pstmt.setInt(2, device.getConnectionState().getValue());
+			pstmt.setInt(3, device.getId());
+			pstmt.executeUpdate();
+			pstmt.close();
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+			response=false;
+		}
+		return response;
+	}
+
+	public boolean setDeviceListConnectionState(DeviceConnectionState connectionState){
+		boolean response=true;
+		String updateSql="UPDATE devices SET connectionState=?;";
+		try{
+			PreparedStatement pstmt=this.getConnection().prepareStatement(updateSql);
+			pstmt.setInt(1, connectionState.getValue());
+			pstmt.executeUpdate();
+			pstmt.close();
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+			response=false;
+		}
+		return response;
+	}
+
+	public boolean deleteDeviceByDeviceId(int deviceId){
+		boolean response=true;
+		String deleteSql="DELETE FROM devices WHERE id=?;";
+		try{
+			PreparedStatement pstmt=this.getConnection().prepareStatement(deleteSql);
+			pstmt.setInt(1, deviceId);
+			pstmt.executeUpdate();
+			pstmt.close();
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+			response=false;
+		}
+		return response;
+	}
+
+	public Device getDeviceByDeviceId(int deviceId){
+		Device device=null;
+		String selectSql="SELECT * FROM devices WHERE id=?;";
+		try{
+			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
+			pstmt.setInt(1, deviceId);
+			ResultSet rs=pstmt.executeQuery();
+			if(rs.next()){
+				device=new Device(rs.getInt("id"),
+						rs.getString("userId"),
+						DeviceConnectionState.valueOf(rs.getInt("connectionState")));
+			}
+			rs.close();
+			pstmt.close();
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+			device=null;
+		}
+		return device;
+	}
+
+	public Device getDeviceByUserId(String userId){
+		Device device=null;
+		String selectSql="SELECT * FROM devices WHERE userId=?;";
+		try{
+			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
+			pstmt.setString(1, userId);
+			ResultSet rs=pstmt.executeQuery();
+			if(rs.next()){
+				device=new Device(rs.getInt("id"),
+						rs.getString("userId"),
+						DeviceConnectionState.valueOf(rs.getInt("connectionState")));
+			}
+			rs.close();
+			pstmt.close();
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+			device=null;
+		}
+		return device;
+	}
+
+	public ArrayList<Device> getDeviceList(){
+		ArrayList<Device> deviceList=new ArrayList<Device>();
+		String selectSql="SELECT * FROM devices;";
+		try{
+			Connection connection=this.getConnection();
+			Statement stmt=connection.createStatement();
+			ResultSet rs=stmt.executeQuery(selectSql);
+			while(rs.next()){
+				Device device=new Device(rs.getInt("id"),
+						rs.getString("userId"),
+						DeviceConnectionState.valueOf(rs.getInt("connectionState")));
+				deviceList.add(device);
+			}
+			rs.close();
+			stmt.close();
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+		}
+		return deviceList;
+	}
+
+	public ArrayList<Device> getOnlineDeviceList(){
+		ArrayList<Device> deviceList=new ArrayList<Device>();
+		String selectSql="SELECT * FROM devices WHERE connectionState=?;";
+		try{
+			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
+			pstmt.setInt(1, DeviceConnectionState.ONLINE.getValue());
+			ResultSet rs=pstmt.executeQuery();
+			while(rs.next()){
+				Device device=new Device(rs.getInt("id"),
+						rs.getString("userId"),
+						DeviceConnectionState.valueOf(rs.getInt("connectionState")));
+				deviceList.add(device);
+			}
+			rs.close();
+			pstmt.close();
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+		}
+		return deviceList;
 	}
 }

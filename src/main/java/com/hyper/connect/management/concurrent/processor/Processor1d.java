@@ -4,23 +4,18 @@ import com.hyper.connect.management.concurrent.AttributeThread;
 import com.hyper.connect.database.DatabaseInterface;
 import com.hyper.connect.model.Attribute;
 import com.hyper.connect.model.Event;
-import com.hyper.connect.management.ScriptManagement;
 import com.hyper.connect.management.HistoryManagement;
 
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.TimerTask;
 import java.util.Date;
-import java.util.Calendar;
 import java.util.TimeZone;
 import java.text.SimpleDateFormat;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Map;
-import java.util.Properties;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import java.text.ParseException;
+
+import com.hyper.connect.model.enums.EventAverage;
+
 import java.util.ArrayList;
 
 
@@ -42,7 +37,7 @@ public class Processor1d extends TimerTask{
 	}
 	
 	public void initEvent(){
-		this.eventList=this.database.getActiveEventListByAverageAndSourceAttributeId("1d", this.attribute.getId());
+		this.eventList=this.database.getActiveEventListByAverageAndSourceAttributeId(EventAverage.ONE_DAY, this.attribute.getId());
 	}
 	
 	public void run(){

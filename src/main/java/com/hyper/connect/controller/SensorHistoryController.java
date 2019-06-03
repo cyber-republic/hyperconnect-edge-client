@@ -1,11 +1,11 @@
 package com.hyper.connect.controller;
 
 import com.hyper.connect.App;
-import com.hyper.connect.model.Sensor;
-import com.hyper.connect.model.Attribute;
-import com.hyper.connect.model.DataRecord;
-import com.hyper.connect.model.PinnedChart;
+import com.hyper.connect.model.*;
 import com.hyper.connect.management.HistoryManagement;
+import com.hyper.connect.model.enums.AttributeType;
+import com.hyper.connect.model.enums.EventAverage;
+import com.hyper.connect.model.enums.PinnedChartWindow;
 import com.hyper.connect.util.CustomUtil;
 
 import javafx.scene.control.*;
@@ -39,7 +39,7 @@ public class SensorHistoryController{
 	private App app;
 	private Sensor sensor;
 	private ArrayList<Attribute> attributeList=null;
-	private String window=null;
+	private PinnedChartWindow window=null;
 	private final Image starImage=new Image(getClass().getClassLoader().getResourceAsStream("icons/baseline_star_blue_24.png"));
 	private final Image starImageEmpty=new Image(getClass().getClassLoader().getResourceAsStream("icons/baseline_star_border_blue_24.png"));
 	private PinnedChart currentPinnedChart=null;
@@ -146,7 +146,7 @@ public class SensorHistoryController{
 		this.attributeChoiceBox.getItems().add("<Attribute>");
 		for(int i=0;i<this.attributeList.size();i++){
 			Attribute attribute=this.attributeList.get(i);
-			if(!attribute.getType().equals("boolean") && !attribute.getType().equals("string")){
+			if(attribute.getType()!=AttributeType.BOOLEAN && attribute.getType()!=AttributeType.STRING){
 				this.attributeChoiceBox.getItems().add(attribute.getName());
 			}
 		}
@@ -186,7 +186,8 @@ public class SensorHistoryController{
 			clearHour();
 			int windowIndex=(Integer)number2;
 			if(windowIndex!=0){
-				window=(String)windowChoiceBox.getItems().get((Integer)number2);
+				String value=(String)windowChoiceBox.getItems().get((Integer)number2);
+				window=getWindowByString(value);
 				initAverage();
 				showDateTime();
 			}
@@ -197,13 +198,13 @@ public class SensorHistoryController{
 		this.averageChoiceBox.setDisable(false);
 		this.averageChoiceBox.getItems().clear();
 		this.averageChoiceBox.getItems().add("<Average>");
-		if(this.window.equals("Hour")){
+		if(this.window==PinnedChartWindow.HOUR){
 			this.averageChoiceBox.getItems().addAll("1 Minute", "5 Minutes");
 		}
-		else if(this.window.equals("Day")){
+		else if(this.window==PinnedChartWindow.DAY){
 			this.averageChoiceBox.getItems().addAll("1 Minute", "5 Minutes", "15 Minutes", "1 Hour");
 		}
-		else if(this.window.equals("Month")){
+		else if(this.window==PinnedChartWindow.MONTH){
 			this.averageChoiceBox.getItems().addAll("1 Hour", "3 Hours", "6 Hours", "1 Day");
 		}
 		this.averageChoiceBox.getSelectionModel().selectFirst();
@@ -223,18 +224,18 @@ public class SensorHistoryController{
 	};
 	
 	private void showDateTime(){
-		if(this.window.equals("Hour")){
+		if(this.window==PinnedChartWindow.HOUR){
 			this.datePicker.setVisible(true);
 			this.datePicker.setManaged(true);
 			
 			this.hourChoiceBox.setVisible(true);
 			this.hourChoiceBox.setManaged(true);
 		}
-		else if(this.window.equals("Day")){
+		else if(this.window==PinnedChartWindow.DAY){
 			this.datePicker.setVisible(true);
 			this.datePicker.setManaged(true);
 		}
-		else if(this.window.equals("Month")){
+		else if(this.window==PinnedChartWindow.MONTH){
 			this.monthChoiceBox.setVisible(true);
 			this.monthChoiceBox.setManaged(true);
 		}
@@ -253,18 +254,18 @@ public class SensorHistoryController{
 	}
 	
 	private void initDateTime(){
-		if(this.window.equals("Hour")){
+		if(this.window==PinnedChartWindow.HOUR){
 			this.datePicker.setVisible(true);
 			this.datePicker.setManaged(true);
 			this.datePicker.setDisable(false);
 			this.datePicker.valueProperty().addListener(dateListener);
 		}
-		else if(this.window.equals("Day")){
+		else if(this.window==PinnedChartWindow.DAY){
 			this.datePicker.setVisible(true);
 			this.datePicker.setManaged(true);
 			this.datePicker.setDisable(false);
 		}
-		else if(this.window.equals("Month")){
+		else if(this.window==PinnedChartWindow.MONTH){
 			this.monthChoiceBox.setVisible(true);
 			this.monthChoiceBox.setManaged(true);
 			this.monthChoiceBox.setDisable(false);
@@ -516,10 +517,12 @@ public class SensorHistoryController{
 			String windowKey=(String)windowChoiceBox.getSelectionModel().getSelectedItem();
 			averageChoiceBox.getSelectionModel().select(averageIndex);
 			String averageKey=(String)averageChoiceBox.getSelectionModel().getSelectedItem();
-			String average=getAverageByKey(averageKey);
-			
+
+			PinnedChartWindow selectedWindow=getWindowByString(windowKey);
+			EventAverage selectedAverage=getEventAverageByString(averageKey);
+
 			favoriteButton.setDisable(false);
-			this.currentPinnedChart=this.app.getDatabase().getPinnedChartByParameters(attribute.getId(), windowKey, average);
+			this.currentPinnedChart=this.app.getDatabase().getPinnedChartByParameters(attribute.getId(), selectedWindow, selectedAverage);
 			if(this.currentPinnedChart==null){
 				favoriteImageView.setImage(starImageEmpty);
 			}
@@ -547,7 +550,7 @@ public class SensorHistoryController{
 						Attribute attribute=attributeList.get(attributeIndex-1);
 						String windowKey=(String)windowChoiceBox.getSelectionModel().getSelectedItem();
 						String averageKey=(String)averageChoiceBox.getSelectionModel().getSelectedItem();
-						String average=getAverageByKey(averageKey);
+						EventAverage average=getEventAverageByString(averageKey);
 						PinnedChart newPinnedChart=app.getDatabase().savePinnedChart(new PinnedChart(0, attribute.getId(), attribute.getName(), window, average));
 						if(newPinnedChart!=null){
 							currentPinnedChart=newPinnedChart;
@@ -592,5 +595,48 @@ public class SensorHistoryController{
 		tableView.setVisible(true);
 		chartButton.setDisable(false);
 		tableButton.setDisable(true);
+	}
+
+	private PinnedChartWindow getWindowByString(String stringWindow){
+		PinnedChartWindow pinnedChartWindow=null;
+		if(stringWindow.equals("Hour")){
+			pinnedChartWindow=PinnedChartWindow.HOUR;
+		}
+		else if(stringWindow.equals("Day")){
+			pinnedChartWindow=PinnedChartWindow.DAY;
+		}
+		else if(stringWindow.equals("Month")){
+			pinnedChartWindow=PinnedChartWindow.MONTH;
+		}
+		return pinnedChartWindow;
+	}
+
+	private EventAverage getEventAverageByString(String stringAverge){
+		EventAverage eventAverage=null;
+		if(stringAverge.equals("Real-Time")){
+			eventAverage=EventAverage.REAL_TIME;
+		}
+		else if(stringAverge.equals("1 Minute")){
+			eventAverage=EventAverage.ONE_MINUTE;
+		}
+		else if(stringAverge.equals("5 Minutes")){
+			eventAverage=EventAverage.FIVE_MINUTES;
+		}
+		else if(stringAverge.equals("15 Minutes")){
+			eventAverage=EventAverage.FIFTEEN_MINUTES;
+		}
+		else if(stringAverge.equals("1 Hour")){
+			eventAverage=EventAverage.ONE_HOUR;
+		}
+		else if(stringAverge.equals("3 Hours")){
+			eventAverage=EventAverage.THREE_HOURS;
+		}
+		else if(stringAverge.equals("6 Hours")){
+			eventAverage=EventAverage.SIX_HOURS;
+		}
+		else if(stringAverge.equals("1 Day")){
+			eventAverage=EventAverage.ONE_DAY;
+		}
+		return eventAverage;
 	}
 }

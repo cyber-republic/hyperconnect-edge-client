@@ -1,9 +1,8 @@
 package com.hyper.connect.management.concurrent;
 
 import com.hyper.connect.database.DatabaseInterface;
-import com.hyper.connect.model.Attribute;
-import com.hyper.connect.model.Event;
-import com.hyper.connect.model.DataRecord;
+import com.hyper.connect.elastos.ElastosCarrier;
+import com.hyper.connect.model.*;
 import com.hyper.connect.management.AttributeManagement;
 import com.hyper.connect.management.ScriptManagement;
 import com.hyper.connect.management.HistoryManagement;
@@ -17,17 +16,13 @@ import com.hyper.connect.management.concurrent.processor.Processor6h;
 import com.hyper.connect.management.concurrent.processor.Processor1d;
 
 import java.lang.Thread;
-import java.util.Properties;
-import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.Locale;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import com.google.gson.JsonObject;
+import com.hyper.connect.model.enums.*;
+
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Timer;
@@ -37,6 +32,7 @@ public class AttributeThread extends Thread{
 	private volatile boolean isRunning=true;
 	private AttributeManagement attributeManager;
 	private Attribute attribute;
+	private ElastosCarrier elastosCarrier;
 	private DatabaseInterface database;
 	private ScriptManagement scriptManager;
 	private HistoryManagement historyManager;
@@ -62,6 +58,7 @@ public class AttributeThread extends Thread{
 	public AttributeThread(Attribute attribute, AttributeManagement attributeManager){
 		this.attribute=attribute;
 		this.attributeManager=attributeManager;
+		this.elastosCarrier=this.attributeManager.getElastosCarrier();
 		this.database=this.attributeManager.getDatabase();
 		this.scriptManager=this.attributeManager.getScriptManager();
 		this.historyManager=new HistoryManagement();
@@ -87,14 +84,15 @@ public class AttributeThread extends Thread{
 		DataRecord dataRecord=null;
 		if(this.currentDateTime!=null){
 			dataRecord=new DataRecord(this.currentDateTime, this.currentValue);
+			dataRecord.setAttributeId(attribute.getId());
 		}
 		return dataRecord;
 	}
 	
 	public void run(){
-		if(this.attribute.getDirection().equals("input")){
+		if(this.attribute.getDirection()==AttributeDirection.INPUT){
 			this.saveHistory=true;
-			if(this.attribute.getType().equals("string") || this.attribute.getType().equals("boolean")){
+			if(this.attribute.getType()==AttributeType.STRING || this.attribute.getType()==AttributeType.BOOLEAN){
 				this.saveHistory=false;
 			}
 			this.initHistory();
@@ -106,7 +104,6 @@ public class AttributeThread extends Thread{
 					this.process(key, value);
 					this.currentValue=value;
 					this.currentDateTime=key;
-					
 					Thread.sleep(this.interval);
 				}
 				catch(NullPointerException npe){}
@@ -163,7 +160,7 @@ public class AttributeThread extends Thread{
 	
 	
 	public void initEvent(){
-		this.eventList=this.database.getActiveEventListByAverageAndSourceAttributeId("real-time", this.attribute.getId());
+		this.eventList=this.database.getActiveEventListByAverageAndSourceAttributeId(EventAverage.REAL_TIME, this.attribute.getId());
 	}
 	
 	private void process(String key, String value){
@@ -194,7 +191,29 @@ public class AttributeThread extends Thread{
 	}
 	
 	public void sendAction(Event event){
-		this.attributeManager.executeAction(event.getActionAttributeId(), event.getTriggerValue());
+		if(event.getType()==EventType.LOCAL){
+			this.attributeManager.executeAction(event.getActionEdgeAttributeId(), event.getTriggerValue());
+		}
+		else if(event.getType()==EventType.GLOBAL){
+			Device device=database.getDeviceByUserId(event.getActionDeviceUserId());
+			if(device.getConnectionState()==DeviceConnectionState.ONLINE){
+				JsonObject jsonObject=new JsonObject();
+				jsonObject.addProperty("command", "executeAttributeAction");
+				jsonObject.addProperty("id", event.getActionEdgeAttributeId());
+				jsonObject.addProperty("triggerValue", event.getTriggerValue());
+				String jsonString=jsonObject.toString();
+				elastosCarrier.sendFriendMessage(event.getActionDeviceUserId(), jsonString);
+			}
+			else if(device.getConnectionState()==DeviceConnectionState.OFFLINE){
+				event.setState(EventState.DEACTIVATED);
+				database.updateEvent(event);
+				JsonObject jsonObject=new JsonObject();
+				jsonObject.addProperty("command", "changeEventState");
+				jsonObject.addProperty("globalEventId", event.getGlobalEventId());
+				jsonObject.addProperty("state", false);
+				elastosCarrier.sendDataToControllers(jsonObject);
+			}
+		}
 	}
 	
 	public void stopScheduler(){
@@ -211,29 +230,29 @@ public class AttributeThread extends Thread{
 		}
 	}
 	
-	public void updateEventState(String average){
-		if(average.equals("real-time")){
+	public void updateEventState(EventAverage average){
+		if(average==EventAverage.REAL_TIME){
 			this.initEvent();
 		}
-		else if(average.equals("1m")){
+		else if(average==EventAverage.ONE_MINUTE){
 			this.processor1m.initEvent();
 		}
-		else if(average.equals("5m")){
+		else if(average==EventAverage.FIVE_MINUTES){
 			this.processor5m.initEvent();
 		}
-		else if(average.equals("15m")){
+		else if(average==EventAverage.FIFTEEN_MINUTES){
 			this.processor15m.initEvent();
 		}
-		else if(average.equals("1h")){
+		else if(average==EventAverage.ONE_HOUR){
 			this.processor1h.initEvent();
 		}
-		else if(average.equals("3h")){
+		else if(average==EventAverage.THREE_HOURS){
 			this.processor3h.initEvent();
 		}
-		else if(average.equals("6h")){
+		else if(average==EventAverage.SIX_HOURS){
 			this.processor6h.initEvent();
 		}
-		else if(average.equals("1d")){
+		else if(average==EventAverage.ONE_DAY){
 			this.processor1d.initEvent();
 		}
 	}

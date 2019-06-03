@@ -1,9 +1,10 @@
 package com.hyper.connect.controller;
 
 import com.hyper.connect.App;
-import com.hyper.connect.model.Sensor;
-import com.hyper.connect.model.Attribute;
-import com.hyper.connect.model.DataRecord;
+import com.hyper.connect.model.*;
+import com.hyper.connect.model.enums.AttributeDirection;
+import com.hyper.connect.model.enums.AttributeState;
+import com.hyper.connect.model.enums.AttributeType;
 import com.hyper.connect.util.CustomUtil;
 
 import javafx.fxml.FXML;
@@ -68,7 +69,7 @@ public class SensorOverviewController{
 	
 	private void initInputList(){
 		this.inputTitleText.setText("Input Attribute List (from sensor) of Sensor '"+this.sensor.getName()+" ("+this.sensor.getId()+")'");
-		ArrayList<Attribute> attributeList=this.app.getDatabase().getAttributeListBySensorIdAndDirection(this.sensor.getId(), "input");
+		ArrayList<Attribute> attributeList=this.app.getDatabase().getAttributeListBySensorIdAndDirection(this.sensor.getId(), AttributeDirection.INPUT);
 		this.inputObservableList=FXCollections.observableArrayList(attributeList);
 		this.inputIdColumn.setCellValueFactory(new PropertyValueFactory("id"));
 		this.inputNameColumn.setCellValueFactory(new PropertyValueFactory("name"));
@@ -154,7 +155,7 @@ public class SensorOverviewController{
 	
 	private void initOutputList(){
 		outputTitleText.setText("Output Attribute List (to sensor) of Sensor '"+this.sensor.getName()+" ("+this.sensor.getId()+")'");
-		ArrayList<Attribute> attributeList=this.app.getDatabase().getAttributeListBySensorIdAndDirection(this.sensor.getId(), "output");
+		ArrayList<Attribute> attributeList=this.app.getDatabase().getAttributeListBySensorIdAndDirection(this.sensor.getId(), AttributeDirection.OUTPUT);
 		this.outputObservableList=FXCollections.observableArrayList(attributeList);
 		this.outputIdColumn.setCellValueFactory(new PropertyValueFactory("id"));
 		this.outputNameColumn.setCellValueFactory(new PropertyValueFactory("name"));
@@ -187,7 +188,7 @@ public class SensorOverviewController{
 						}
 						else{
 							Attribute attribute=getTableView().getItems().get(getIndex());
-							String attributeType=attribute.getType();
+							AttributeType attributeType=attribute.getType();
 							
 							ImageView sendImageView=new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("icons/baseline_send_white_24.png")));
 							sendImageView.setFitWidth(18);
@@ -195,7 +196,7 @@ public class SensorOverviewController{
 							sendButton.setGraphic(sendImageView);
 							sendButton.setOnAction(sendEvent -> {
 								String value="";
-								if(attributeType.equals("boolean")){
+								if(attributeType==AttributeType.BOOLEAN){
 									value=valueChoiceBox.getSelectionModel().getSelectedItem().toString();
 								}
 								else{
@@ -208,7 +209,7 @@ public class SensorOverviewController{
 								else if(value.contains(" ")){
 									app.showMessageStrip("Warning", "The input field cannot contain whitespace.", sensorOverviewPane);
 								}
-								else if(attribute.getState().equals("deactivated")){
+								else if(attribute.getState()==AttributeState.DEACTIVATED){
 									app.showMessageStrip("Warning", "Attribute '"+attribute.getName()+" ("+attribute.getId()+")' is not active.", sensorOverviewPane);
 								}
 								else{
@@ -232,7 +233,7 @@ public class SensorOverviewController{
 							});
 							
 							HBox hbox=new HBox(valueTextField, sendButton);
-							if(attributeType.equals("boolean")){
+							if(attributeType==AttributeType.BOOLEAN){
 								hbox=new HBox(valueChoiceBox, sendButton);
 							}
 							
