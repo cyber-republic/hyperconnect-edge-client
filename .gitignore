@@ -25,3 +25,4 @@ hs_err_pid*
 src/main/resources/lib/linux/
 src/main/resources/lib/rpi/
 src/main/resources/lib/windows/
+src/main/resources/lib/mac/
