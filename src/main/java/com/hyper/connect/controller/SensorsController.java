@@ -4,14 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.hyper.connect.App;
-import com.hyper.connect.model.Notification;
 import com.hyper.connect.model.Sensor;
 import com.hyper.connect.model.Attribute;
 import com.hyper.connect.model.Event;
 
-import com.hyper.connect.model.enums.NotificationCategory;
-import com.hyper.connect.model.enums.NotificationType;
-import com.hyper.connect.util.CustomUtil;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -142,44 +138,32 @@ public class SensorsController{
 														int errorCount=0;
 														Sensor sensor=getTableView().getItems().get(getIndex());
 														ArrayList<Attribute> attributeList=app.getDatabase().getAttributeListBySensorId(sensor.getId());
-														for(Attribute attribute : attributeList){
-															ArrayList<Event> eventList=app.getDatabase().getEventListByAttributeId(attribute.getId());
-															for(Event event : eventList){
+														for(int i=0;i<attributeList.size();i++){
+															Attribute attribute=attributeList.get(i);
+															ArrayList<Event> eventList=app.getDatabase().getEventListOnlyNameAndIdByAttributeId(attribute.getId());
+															for(int j=0;j<eventList.size();j++){
+																Event event=eventList.get(j);
 																boolean deleteEventResult=app.getDatabase().deleteEventByEventId(event.getId());
 																if(!deleteEventResult){
 																	errorCount++;
 																}
-																JsonObject jsonObject=new JsonObject();
-																jsonObject.addProperty("command", "deleteEvent");
-																jsonObject.addProperty("globalEventId", event.getGlobalEventId());
-																app.getElastosCarrier().sendDataToControllers(jsonObject);
 															}
 															boolean deleteAttributeResult=app.getDatabase().deleteAttributeByAttributeId(attribute.getId());
 															if(!deleteAttributeResult){
 																errorCount++;
 															}
-															JsonObject jsonObject=new JsonObject();
-															jsonObject.addProperty("command", "deleteAttribute");
-															jsonObject.addProperty("id", attribute.getId());
-															app.getElastosCarrier().sendDataToControllers(jsonObject);
 														}
 														boolean deleteSensorResult=app.getDatabase().deleteSensorBySensorId(sensor.getId());
 														if(!deleteSensorResult){
 															errorCount++;
 														}
-														JsonObject jsonObject=new JsonObject();
-														jsonObject.addProperty("command", "deleteSensor");
-														jsonObject.addProperty("id", sensor.getId());
-														app.getElastosCarrier().sendDataToControllers(jsonObject);
 														
 														if(errorCount==0){
 															sensorObservableList.removeAll(sensor);
-															Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.SENSOR, Integer.toString(sensor.getId()), "Sensor '"+sensor.getName()+" ("+sensor.getId()+")' has been deleted.", CustomUtil.getCurrentDateTime());
-															app.showAndSaveNotification(notification, sensorsPane);
+															app.showMessageStripAndSave("Success", "Device", "Sensor '"+sensor.getName()+" ("+sensor.getId()+")' has been deleted.", sensorsPane);
 														}
 														else{
-															Notification notification=new Notification(0, NotificationType.ERROR, NotificationCategory.SENSOR, Integer.toString(sensor.getId()), "Sorry, something went wrong deleting the sensor '"+sensor.getName()+" ("+sensor.getId()+")'.", CustomUtil.getCurrentDateTime());
-															app.showAndSaveNotification(notification, sensorsPane);
+															app.showMessageStripAndSave("Error", "Device", "Sorry, something went wrong deleting the sensor '"+sensor.getName()+" ("+sensor.getId()+")'.", sensorsPane);
 														}
 
 														return null;
@@ -243,7 +227,7 @@ public class SensorsController{
 		String name=nameTextField.getText();
 		String type=typeTextField.getText();
 		if(name.equals("") || type.equals("")){
-			this.app.showMessageStrip(NotificationType.WARNING, "Please fill out all required fields.", sensorsPane);
+			this.app.showMessageStrip("Warning", "Please fill out all required fields.", sensorsPane);
 		}
 		else{
 			nameTextField.clear();
@@ -255,16 +239,15 @@ public class SensorsController{
 					Sensor newSensor=app.getDatabase().saveSensor(new Sensor(0, name, type));
 					if(newSensor!=null){
 						sensorObservableList.addAll(newSensor);
-						Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.SENSOR, Integer.toString(newSensor.getId()), "Sensor '"+newSensor.getName()+" ("+newSensor.getId()+")' has been added.", CustomUtil.getCurrentDateTime());
-						app.showAndSaveNotification(notification, sensorsPane);
+						app.showMessageStripAndSave("Success", "Device", "Sensor '"+newSensor.getName()+" ("+newSensor.getId()+")' has been added.", sensorsPane);
 						JsonElement jsonSensor=new Gson().toJsonTree(newSensor);
 						JsonObject jsonObject=new JsonObject();
 						jsonObject.addProperty("command", "addSensor");
 						jsonObject.add("sensor", jsonSensor);
-						app.getElastosCarrier().sendDataToOnlineControllers(jsonObject);
+						app.getElastosCarrier().sendDataToControllers(jsonObject);
 					}
 					else{
-						app.showMessageStrip(NotificationType.ERROR, "Sorry, something went wrong adding the sensor '"+name+"'.", sensorsPane);
+						app.showMessageStripAndSave("Error", "Device", "Sorry, something went wrong adding the sensor '"+name+"'.", sensorsPane);
 					}
 					return null;
 				}

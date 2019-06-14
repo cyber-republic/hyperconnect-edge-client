@@ -89,9 +89,8 @@ public class DatabaseSQLite implements DatabaseInterface{
 			");";
 		String createNotificationsTableSql="CREATE TABLE IF NOT EXISTS notifications("+
 			"id INTEGER PRIMARY KEY AUTOINCREMENT,"+
-			"type INTEGER NOT NULL,"+
-			"category INTEGER NOT NULL,"+
-			"edgeThingId TEXT NOT NULL,"+
+			"type TEXT NOT NULL,"+
+			"category TEXT NOT NULL,"+
 			"message TEXT NOT NULL,"+
 			"dateTime TEXT NOT NULL"+
 			");";
@@ -800,43 +799,7 @@ public class DatabaseSQLite implements DatabaseInterface{
 		}
 		return eventList;
 	}
-
-	public ArrayList<Event> getEventListByAttributeId(int attributeId){
-		ArrayList<Event> eventList=new ArrayList<Event>();
-		String selectSql="SELECT * FROM events WHERE sourceEdgeAttributeId=? OR actionEdgeAttributeId=?;";
-		try{
-			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
-			pstmt.setInt(1, attributeId);
-			pstmt.setInt(2, attributeId);
-			ResultSet rs=pstmt.executeQuery();
-			while(rs.next()){
-				Event event=new Event(rs.getInt("id"),
-						rs.getString("globalEventId"),
-						rs.getString("name"),
-						EventType.valueOf(rs.getInt("type")),
-						EventState.valueOf(rs.getInt("state")),
-						EventAverage.valueOf(rs.getInt("average")),
-						EventCondition.valueOf(rs.getInt("condition")),
-						rs.getString("conditionValue"),
-						rs.getString("triggerValue"),
-						rs.getString("sourceDeviceUserId"),
-						rs.getInt("sourceEdgeSensorId"),
-						rs.getInt("sourceEdgeAttributeId"),
-						rs.getString("actionDeviceUserId"),
-						rs.getInt("actionEdgeSensorId"),
-						rs.getInt("actionEdgeAttributeId"),
-						EventEdgeType.valueOf(rs.getInt("edgeType")));
-				eventList.add(event);
-			}
-			rs.close();
-			pstmt.close();
-		}
-		catch(SQLException e){
-			System.out.println(e.getMessage());
-		}
-		return eventList;
-	}
-
+	
 	public ArrayList<Event> getEventListOnlyNameAndIdByAttributeId(int attributeId){
 		ArrayList<Event> eventList=new ArrayList<Event>();
 		String selectSql="SELECT id, name FROM events WHERE sourceEdgeAttributeId=? OR actionEdgeAttributeId=?;";
@@ -1198,14 +1161,13 @@ public class DatabaseSQLite implements DatabaseInterface{
 	
 	public Notification saveNotification(Notification notification){
 		Notification newNotification=null;
-		String insertSql="INSERT INTO notifications(type, category, edgeThingId, message, dateTime) VALUES(?,?,?,?,?);";
+		String insertSql="INSERT INTO notifications(type, category, message, dateTime) VALUES(?,?,?,?);";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS);
-			pstmt.setInt(1, notification.getType().getValue());
-            pstmt.setInt(2, notification.getCategory().getValue());
-			pstmt.setString(3, notification.getEdgeThingId());
-			pstmt.setString(4, notification.getMessage());
-			pstmt.setString(5, notification.getDateTime());
+			pstmt.setString(1, notification.getType());
+            pstmt.setString(2, notification.getCategory());
+			pstmt.setString(3, notification.getMessage());
+			pstmt.setString(4, notification.getDateTime());
             pstmt.executeUpdate();
 			
 			ResultSet rs=pstmt.getGeneratedKeys();
@@ -1233,9 +1195,8 @@ public class DatabaseSQLite implements DatabaseInterface{
 			ResultSet rs=stmt.executeQuery(selectSql);
 			while(rs.next()){
 				Notification notification=new Notification(rs.getInt("id"),
-					NotificationType.valueOf(rs.getInt("type")),
-					NotificationCategory.valueOf(rs.getInt("category")),
-					rs.getString("edgeThingId"),
+					rs.getString("type"),
+					rs.getString("category"),
 					rs.getString("message"),
 					rs.getString("dateTime"));
 				notificationList.add(notification);
@@ -1249,12 +1210,12 @@ public class DatabaseSQLite implements DatabaseInterface{
 		return notificationList;
 	}
 	
-	public int getNotificationCountByType(NotificationType type){
+	public int getNotificationCountByType(String type){
 		int count=0;
 		String selectSql="SELECT COUNT(*) AS total FROM notifications WHERE type=?;";
 		try{
 			PreparedStatement pstmt=this.getConnection().prepareStatement(selectSql);
-			pstmt.setInt(1, type.getValue());
+			pstmt.setString(1, type);
 			ResultSet rs=pstmt.executeQuery();
 			rs.next();
 			count=rs.getInt("total");

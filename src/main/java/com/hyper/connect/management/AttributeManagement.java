@@ -117,14 +117,14 @@ public class AttributeManagement{
 		boolean response=false;
 		Attribute attribute=attributeMap.get(id);
 		if(attribute!=null){
-			//if(attribute.getState()==AttributeState.ACTIVE){
+			if(attribute.getState()==AttributeState.ACTIVE){
 				String filename=id+".py";
 				JsonObject resultObject=scriptManager.executePythonFileWithParameter(filename, triggerValue);
 				String error=resultObject.get("error").getAsString();
 				if(error.isEmpty()){
 					response=true;
 				}
-			//}
+			}
 		}
 		return response;
 	}
@@ -136,14 +136,5 @@ public class AttributeManagement{
 			dataRecord=attributeThread.getCurrentDataRecord();
 		}
 		return dataRecord;
-	}
-
-	public ArrayList<DataRecord> getLatestDataRecordList(int id){
-		ArrayList<DataRecord> latestDataRecordList=null;
-		AttributeThread attributeThread=attributeThreadMap.get(id);
-		if(attributeThread!=null){
-			latestDataRecordList=attributeThread.getLatestDataRecordList();
-		}
-		return latestDataRecordList;
 	}
 }

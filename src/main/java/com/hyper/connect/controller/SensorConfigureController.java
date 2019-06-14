@@ -7,7 +7,6 @@ import com.hyper.connect.App;
 import com.hyper.connect.model.*;
 
 import com.hyper.connect.model.enums.*;
-import com.hyper.connect.util.CustomUtil;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -245,19 +244,17 @@ public class SensorConfigureController{
 														boolean updateResult=app.getDatabase().updateAttribute(attribute);
 														if(updateResult){
 															attributeListTableView.getItems().set(getIndex(), attribute);
-															Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.ATTRIBUTE, Integer.toString(attribute.getId()), "Attribute '"+attribute.getName()+" ("+attribute.getId()+")' has been activated.", CustomUtil.getCurrentDateTime());
-															app.showAndSaveNotification(notification, sensorConfigurePane);
+															app.showMessageStripAndSave("Success", "Device", "Attribute '"+attribute.getName()+" ("+attribute.getId()+")' has been activated.", sensorConfigurePane);
 															app.getAttributeManager().startAttribute(attribute.getId());
 															JsonObject jsonObject=new JsonObject();
 															jsonObject.addProperty("command", "changeAttributeState");
 															jsonObject.addProperty("id", attribute.getId());
 															jsonObject.addProperty("state", isSelected);
-															app.getElastosCarrier().sendDataToOnlineControllers(jsonObject);
+															app.getElastosCarrier().sendDataToControllers(jsonObject);
 														}
 														else{
 															stateButton.setSelected(false);
-															Notification notification=new Notification(0, NotificationType.ERROR, NotificationCategory.ATTRIBUTE, Integer.toString(attribute.getId()), "Sorry, something went wrong changing the state of attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", CustomUtil.getCurrentDateTime());
-															app.showAndSaveNotification(notification, sensorConfigurePane);
+															app.showMessageStripAndSave("Error", "Device", "Sorry, something went wrong changing the state of attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", sensorConfigurePane);
 														}
 														return null;
 													}
@@ -274,14 +271,12 @@ public class SensorConfigureController{
 															boolean updateResult=app.getDatabase().updateAttribute(attribute);
 															if(updateResult){
 																attributeListTableView.getItems().set(getIndex(), attribute);
-																Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.ATTRIBUTE, Integer.toString(attribute.getId()), "Attribute '"+attribute.getName()+" ("+attribute.getId()+")' has been deactivated.", CustomUtil.getCurrentDateTime());
-																app.showAndSaveNotification(notification, sensorConfigurePane);
+																app.showMessageStripAndSave("Success", "Device", "Attribute '"+attribute.getName()+" ("+attribute.getId()+")' has been deactivated.", sensorConfigurePane);
 																app.getAttributeManager().stopAttribute(attribute.getId());
 															}
 															else{
 																stateButton.setSelected(true);
-																Notification notification=new Notification(0, NotificationType.ERROR, NotificationCategory.ATTRIBUTE, Integer.toString(attribute.getId()), "Sorry, something went wrong changing the state of attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", CustomUtil.getCurrentDateTime());
-																app.showAndSaveNotification(notification, sensorConfigurePane);
+																app.showMessageStripAndSave("Error", "Device", "Sorry, something went wrong changing the state of attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", sensorConfigurePane);
 															}
 															return null;
 														}
@@ -291,7 +286,7 @@ public class SensorConfigureController{
 													jsonObject.addProperty("command", "changeAttributeState");
 													jsonObject.addProperty("id", attribute.getId());
 													jsonObject.addProperty("state", false);
-													app.getElastosCarrier().sendDataToOnlineControllers(jsonObject);
+													app.getElastosCarrier().sendDataToControllers(jsonObject);
 												}
 												else{
 													stateButton.setSelected(true);
@@ -332,7 +327,7 @@ public class SensorConfigureController{
 																				jsonObject.addProperty("command", "changeEventState");
 																				jsonObject.addProperty("globalEventId", event.getGlobalEventId());
 																				jsonObject.addProperty("state", false);
-																				app.getElastosCarrier().sendDataToOnlineControllers(jsonObject);
+																				app.getElastosCarrier().sendDataToControllers(jsonObject);
 
 																				if(event.getEdgeType()==EventEdgeType.SOURCE){
 																					jsonObject.addProperty("edgeType", EventEdgeType.ACTION.getValue());
@@ -351,14 +346,12 @@ public class SensorConfigureController{
 																	
 																	if(errorCount==0){
 																		attributeListTableView.getItems().set(getIndex(), attribute);
-																		Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.ATTRIBUTE, Integer.toString(attribute.getId()), "Attribute '"+attribute.getName()+" ("+attribute.getId()+")' has been deactivated.", CustomUtil.getCurrentDateTime());
-																		app.showAndSaveNotification(notification, sensorConfigurePane);
+																		app.showMessageStripAndSave("Success", "Device", "Attribute '"+attribute.getName()+" ("+attribute.getId()+")' has been deactivated.", sensorConfigurePane);
 																		app.getAttributeManager().stopAttribute(attribute.getId());
 																	}
 																	else{
 																		stateButton.setSelected(true);
-																		Notification notification=new Notification(0, NotificationType.ERROR, NotificationCategory.ATTRIBUTE, Integer.toString(attribute.getId()), "Sorry, something went wrong changing the state of attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", CustomUtil.getCurrentDateTime());
-																		app.showAndSaveNotification(notification, sensorConfigurePane);
+																		app.showMessageStripAndSave("Error", "Device", "Sorry, something went wrong changing the state of attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", sensorConfigurePane);
 																	}
 
 																	return null;
@@ -376,7 +369,7 @@ public class SensorConfigureController{
 										}
 										else{
 											stateButton.setSelected(false);
-											app.showMessageStrip(NotificationType.WARNING, "You have to validate the script.", sensorConfigurePane);
+											app.showMessageStrip("Warning", "You have to validate the script.", sensorConfigurePane);
 										}
 										
 									});
@@ -417,35 +410,26 @@ public class SensorConfigureController{
 													@Override
 													public Void call(){
 														int errorCount=0;
-														ArrayList<Event> eventList=app.getDatabase().getEventListByAttributeId(attribute.getId());
-														for(Event event : eventList){
+														ArrayList<Event> eventList=app.getDatabase().getEventListOnlyNameAndIdByAttributeId(attribute.getId());
+														for(int i=0;i<eventList.size();i++){
+															Event event=eventList.get(i);
 															boolean deleteEventResult=app.getDatabase().deleteEventByEventId(event.getId());
 															if(!deleteEventResult){
 																errorCount++;
 															}
-															JsonObject jsonObject=new JsonObject();
-															jsonObject.addProperty("command", "deleteEvent");
-															jsonObject.addProperty("globalEventId", event.getGlobalEventId());
-															app.getElastosCarrier().sendDataToControllers(jsonObject);
 														}
 														boolean deleteAttributeResult=app.getDatabase().deleteAttributeByAttributeId(attribute.getId());
 														if(!deleteAttributeResult){
 															errorCount++;
 														}
-														JsonObject jsonObject=new JsonObject();
-														jsonObject.addProperty("command", "deleteAttribute");
-														jsonObject.addProperty("id", attribute.getId());
-														app.getElastosCarrier().sendDataToControllers(jsonObject);
 														
 														if(errorCount==0){
 															attributeObservableList.removeAll(attribute);
-															Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.ATTRIBUTE, Integer.toString(attribute.getId()), "Attribute '"+attribute.getName()+" ("+attribute.getId()+")' has been deleted.", CustomUtil.getCurrentDateTime());
-															app.showAndSaveNotification(notification, sensorConfigurePane);
+															app.showMessageStripAndSave("Success", "Device", "Attribute '"+attribute.getName()+" ("+attribute.getId()+")' has been deleted.", sensorConfigurePane);
 															app.getAttributeManager().deleteAttribute(attribute.getId());
 														}
 														else{
-															Notification notification=new Notification(0, NotificationType.ERROR, NotificationCategory.ATTRIBUTE, Integer.toString(attribute.getId()), "Sorry, something went wrong deleting the attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", CustomUtil.getCurrentDateTime());
-															app.showAndSaveNotification(notification, sensorConfigurePane);
+															app.showMessageStripAndSave("Error", "Device", "Sorry, something went wrong deleting the attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", sensorConfigurePane);
 														}
 														return null;
 													}
@@ -542,7 +526,7 @@ public class SensorConfigureController{
 		String name=nameTextField.getText();
 		
 		if(name.equals("")){
-			this.app.showMessageStrip(NotificationType.WARNING, "Please fill out all required fields.", sensorConfigurePane);
+			this.app.showMessageStrip("Warning", "Please fill out all required fields.", sensorConfigurePane);
 		}
 		else{
 			nameTextField.clear();
@@ -578,17 +562,16 @@ public class SensorConfigureController{
 					Attribute newAttribute=app.getDatabase().saveAttribute(new Attribute(0, name, direction, type, interval, AttributeScriptState.INVALID, AttributeState.DEACTIVATED, sensor.getId()));
 					if(newAttribute!=null){
 						attributeObservableList.addAll(newAttribute);
-						Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.ATTRIBUTE, Integer.toString(newAttribute.getId()), "Attribute '"+newAttribute.getName()+" ("+newAttribute.getId()+")' has been added.", CustomUtil.getCurrentDateTime());
-						app.showAndSaveNotification(notification, sensorConfigurePane);
+						app.showMessageStripAndSave("Success", "Device", "Attribute '"+newAttribute.getName()+" ("+newAttribute.getId()+")' has been added.", sensorConfigurePane);
 						app.getAttributeManager().addAttribute(newAttribute);
 						JsonElement jsonAttribute=new Gson().toJsonTree(newAttribute);
 						JsonObject jsonObject=new JsonObject();
 						jsonObject.addProperty("command", "addAttribute");
 						jsonObject.add("attribute", jsonAttribute);
-						app.getElastosCarrier().sendDataToOnlineControllers(jsonObject);
+						app.getElastosCarrier().sendDataToControllers(jsonObject);
 					}
 					else{
-						app.showMessageStrip(NotificationType.ERROR, "Sorry, something went wrong adding the attribute '"+name+"'.", sensorConfigurePane);
+						app.showMessageStripAndSave("Error", "Device", "Sorry, something went wrong adding the attribute '"+name+"'.", sensorConfigurePane);
 					}
 					return null;
 				}

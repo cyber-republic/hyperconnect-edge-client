@@ -5,7 +5,6 @@ import com.hyper.connect.model.*;
 import com.hyper.connect.management.HistoryManagement;
 import com.hyper.connect.model.enums.AttributeState;
 import com.hyper.connect.model.enums.EventState;
-import com.hyper.connect.model.enums.NotificationType;
 import com.hyper.connect.model.enums.PinnedChartWindow;
 import com.hyper.connect.util.CustomUtil;
 
@@ -77,11 +76,11 @@ public class DashboardController{
 				eventText.setText(eventCount);
 				activeEventText.setText(activeEventCount);
 				
-				String successCount=Integer.toString(app.getDatabase().getNotificationCountByType(NotificationType.SUCCESS));
+				String successCount=Integer.toString(app.getDatabase().getNotificationCountByType("Success"));
 				successText.setText(successCount);
-				String warningCount=Integer.toString(app.getDatabase().getNotificationCountByType(NotificationType.WARNING));
+				String warningCount=Integer.toString(app.getDatabase().getNotificationCountByType("Warning"));
 				warningText.setText(warningCount);
-				String errorCount=Integer.toString(app.getDatabase().getNotificationCountByType(NotificationType.ERROR));
+				String errorCount=Integer.toString(app.getDatabase().getNotificationCountByType("Error"));
 				errorText.setText(errorCount);
 				
 				String controllerCount=Integer.toString(app.getDatabase().getControllerCount());
@@ -222,10 +221,10 @@ public class DashboardController{
 							boolean deleteResult=app.getDatabase().deletePinnedChartByPinnedChartId(pinnedChart.getId());
 							if(deleteResult){
 								Platform.runLater(() -> init());
-								app.showMessageStrip(NotificationType.SUCCESS, "Chart has been removed.", dashboardPane);
+								app.showMessageStrip("Success", "Chart has been removed.", dashboardPane);
 							}
 							else{
-								app.showMessageStrip(NotificationType.ERROR, "Sorry, something went wrong removing a chart from the dashboard.", dashboardPane);
+								app.showMessageStripAndSave("Error", "System", "Sorry, something went wrong removing a chart from the dashboard.", dashboardPane);
 							}
 							
 							return null;

@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import com.google.gson.JsonObject;
 import com.hyper.connect.model.enums.AttributeType;
-import com.hyper.connect.model.enums.NotificationType;
 import com.hyper.connect.util.CustomUtil;
 
 
@@ -42,16 +41,16 @@ public class ScriptManagement{
 		if(error.equals("")){
 			boolean typeValid=this.checkValueWithType(stringValue, attributeType);
 			if(typeValid){
-				jsonObject.addProperty("notificationType", NotificationType.SUCCESS.getValue());
+				jsonObject.addProperty("response", "Success");
 				jsonObject.addProperty("message", "The script has been successfully validated. The measured test value was "+stringValue);
 			}
 			else{
-				jsonObject.addProperty("notificationType", NotificationType.ERROR.getValue());
+				jsonObject.addProperty("response", "Error");
 				jsonObject.addProperty("message", "The measured test value does not match the attribute type "+attributeType+".");
 			}
 		}
 		else{
-			jsonObject.addProperty("notificationType", NotificationType.ERROR.getValue());
+			jsonObject.addProperty("response", "Error");
 			jsonObject.addProperty("message", error);
 		}
 		
@@ -70,21 +69,21 @@ public class ScriptManagement{
 			if(error.equals("")){
 				boolean isScriptDone=this.checkScriptDone(stringValue);
 				if(isScriptDone){
-					jsonObject.addProperty("notificationType", NotificationType.SUCCESS.getValue());
+					jsonObject.addProperty("response", "Success");
 					jsonObject.addProperty("message", "The script has been successfully validated.");
 				}
 				else{
-					jsonObject.addProperty("notificationType", NotificationType.ERROR.getValue());
+					jsonObject.addProperty("response", "Error");
 					jsonObject.addProperty("message", "The code: print(\"DONE\") is missing from the end of the script.");
 				}
 			}
 			else{
-				jsonObject.addProperty("notificationType", NotificationType.ERROR.getValue());
+				jsonObject.addProperty("response", "Error");
 				jsonObject.addProperty("message", error);
 			}
 		}
 		else{
-			jsonObject.addProperty("notificationType", NotificationType.WARNING.getValue());
+			jsonObject.addProperty("response", "Warning");
 			jsonObject.addProperty("message", "The 'Test Parameter' value does not match the attribute type "+attributeType+".");
 		}
 		
