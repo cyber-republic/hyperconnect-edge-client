@@ -6,7 +6,6 @@ import com.hyper.connect.model.*;
 import com.hyper.connect.model.enums.AttributeDirection;
 import com.hyper.connect.model.enums.AttributeScriptState;
 import com.hyper.connect.model.enums.AttributeType;
-import com.hyper.connect.model.enums.NotificationType;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
@@ -101,7 +100,7 @@ public class ScriptController{
 			if(!saveButton.isDisable()){
 				saveButton.setDisable(true);
 				if(!tempScriptContent.equals(newValue)){
-					app.showMessageStrip(NotificationType.WARNING, "Changes to the script have been made. Please validate it again.", scriptPane);
+					app.showMessageStrip("Warning", "Changes to the script have been made. Please validate it again.", scriptPane);
 				}
 			}
 		}
@@ -176,35 +175,35 @@ public class ScriptController{
 		Task validateTask=new Task<Void>(){
 			@Override
 			public Void call(){
-				NotificationType notificationType=null;
+				String response="";
 				String message="";
 				String scriptName=attribute.getId()+"_temp";
 				String scriptContent=codeTextArea.getText();
 				if(attribute.getDirection()==AttributeDirection.INPUT){
 					JsonObject resultObject=app.getScriptManager().validatePythonScript(scriptName, scriptContent, attribute.getType());
-					notificationType=NotificationType.valueOf(resultObject.get("notificationType").getAsInt());
+					response=resultObject.get("response").getAsString();
 					message=resultObject.get("message").getAsString();
 				}
 				else{
 					String parameter=parameterTextField.getText();
 					if(parameter.equals("")){
-						notificationType=NotificationType.WARNING;
+						response="Warning";
 						message="Please enter an input parameter.";
 					}
 					else{
 						JsonObject resultObject=app.getScriptManager().validatePythonScriptWithParameter(scriptName, scriptContent, attribute.getType(), parameter);
-						notificationType=NotificationType.valueOf(resultObject.get("notificationType").getAsInt());
+						response=resultObject.get("response").getAsString();
 						message=resultObject.get("message").getAsString();
 					}
 				}
 				
-				if(notificationType==NotificationType.SUCCESS){
+				if(response.equals("Success")){
 					saveButton.setDisable(false);
 				}
 				else{
 					saveButton.setDisable(true);
 				}
-				app.showMessageStrip(notificationType, message, scriptPane);
+				app.showMessageStrip(response, message, scriptPane);
 				return null;
 			}
 		};
@@ -222,17 +221,12 @@ public class ScriptController{
 				attribute.setScriptState(AttributeScriptState.VALID);
 				boolean updateResult=app.getDatabase().updateAttribute(attribute);
 				if(updateResult){
-					JsonObject jsonObject=new JsonObject();
-					jsonObject.addProperty("command", "changeAttributeScriptState");
-					jsonObject.addProperty("id", attribute.getId());
-					jsonObject.addProperty("scriptState", true);
-					app.getElastosCarrier().sendDataToOnlineControllers(jsonObject);
-					app.showMessageStrip(NotificationType.SUCCESS, "The script of attribute '"+attribute.getName()+" ("+attribute.getId()+")' has been saved.", scriptPane);
+					app.showMessageStrip("Success", "The script of attribute '"+attribute.getName()+" ("+attribute.getId()+")' has been saved.", scriptPane);
 					tempScriptContent=scriptContent;
 					Platform.runLater(() -> onButtonCancel());
 				}
 				else{
-					app.showMessageStrip(NotificationType.ERROR, "Sorry, something went wrong saving the script of attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", scriptPane);
+					app.showMessageStripAndSave("Error", "Device", "Sorry, something went wrong saving the script of attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", scriptPane);
 				}
 				return null;
 			}

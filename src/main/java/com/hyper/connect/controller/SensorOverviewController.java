@@ -2,7 +2,9 @@ package com.hyper.connect.controller;
 
 import com.hyper.connect.App;
 import com.hyper.connect.model.*;
-import com.hyper.connect.model.enums.*;
+import com.hyper.connect.model.enums.AttributeDirection;
+import com.hyper.connect.model.enums.AttributeState;
+import com.hyper.connect.model.enums.AttributeType;
 import com.hyper.connect.util.CustomUtil;
 
 import javafx.fxml.FXML;
@@ -69,9 +71,9 @@ public class SensorOverviewController{
 		this.inputTitleText.setText("Input Attribute List (from sensor) of Sensor '"+this.sensor.getName()+" ("+this.sensor.getId()+")'");
 		ArrayList<Attribute> attributeList=this.app.getDatabase().getAttributeListBySensorIdAndDirection(this.sensor.getId(), AttributeDirection.INPUT);
 		this.inputObservableList=FXCollections.observableArrayList(attributeList);
-		inputIdColumn.setCellValueFactory(new PropertyValueFactory("id"));
-		inputNameColumn.setCellValueFactory(new PropertyValueFactory("name"));
-		inputTypeColumn.setCellValueFactory(new PropertyValueFactory("type"));
+		this.inputIdColumn.setCellValueFactory(new PropertyValueFactory("id"));
+		this.inputNameColumn.setCellValueFactory(new PropertyValueFactory("name"));
+		this.inputTypeColumn.setCellValueFactory(new PropertyValueFactory("type"));
 		
 		Callback<TableColumn<Attribute, String>, TableCell<Attribute, String>> latestValueCellFactory=new Callback<TableColumn<Attribute, String>, TableCell<Attribute, String>>(){
 			@Override
@@ -146,9 +148,9 @@ public class SensorOverviewController{
 			}
 		};
 		
-		inputLatestValueColumn.setCellFactory(latestValueCellFactory);
-		inputDateTimeColumn.setCellFactory(dateTimeCellFactory);
-		inputTableView.setItems(inputObservableList);
+		this.inputLatestValueColumn.setCellFactory(latestValueCellFactory);
+		this.inputDateTimeColumn.setCellFactory(dateTimeCellFactory);
+		this.inputTableView.setItems(this.inputObservableList);
 	}
 	
 	private void initOutputList(){
@@ -202,13 +204,13 @@ public class SensorOverviewController{
 								}
 								
 								if(value.isEmpty()){
-									app.showMessageStrip(NotificationType.WARNING, "Please fill out the required field for the attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", sensorOverviewPane);
+									app.showMessageStrip("Warning", "Please fill out the required field for the attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", sensorOverviewPane);
 								}
 								else if(value.contains(" ")){
-									app.showMessageStrip(NotificationType.WARNING, "The input field cannot contain whitespace.", sensorOverviewPane);
+									app.showMessageStrip("Warning", "The input field cannot contain whitespace.", sensorOverviewPane);
 								}
 								else if(attribute.getState()==AttributeState.DEACTIVATED){
-									app.showMessageStrip(NotificationType.WARNING, "Attribute '"+attribute.getName()+" ("+attribute.getId()+")' is not active.", sensorOverviewPane);
+									app.showMessageStrip("Warning", "Attribute '"+attribute.getName()+" ("+attribute.getId()+")' is not active.", sensorOverviewPane);
 								}
 								else{
 									final String finalValue=value;
@@ -218,12 +220,10 @@ public class SensorOverviewController{
 											boolean executeResult=app.getAttributeManager().executeAction(attribute.getId(), finalValue);
 											if(executeResult){
 												valueTextField.clear();
-												Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.ATTRIBUTE, Integer.toString(attribute.getId()), "Action message with the value '"+finalValue+"' has been sent to attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", CustomUtil.getCurrentDateTime());
-												app.showAndSaveNotification(notification, sensorOverviewPane);
+												app.showMessageStripAndSave("Success", "Device", "Action message with the value '"+finalValue+"' has been sent to attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", sensorOverviewPane);
 											}
 											else{
-												Notification notification=new Notification(0, NotificationType.ERROR, NotificationCategory.ATTRIBUTE, Integer.toString(attribute.getId()), "Sorry, something went wrong sending the value '"+finalValue+"' to the attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", CustomUtil.getCurrentDateTime());
-												app.showAndSaveNotification(notification, sensorOverviewPane);
+												app.showMessageStripAndSave("Error", "Device", "Sorry, something went wrong sending the value '"+finalValue+"' to the attribute '"+attribute.getName()+" ("+attribute.getId()+")'.", sensorOverviewPane);
 											}
 											return null;
 										}

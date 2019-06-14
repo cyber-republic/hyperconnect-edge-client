@@ -23,7 +23,6 @@ import java.text.SimpleDateFormat;
 import com.google.gson.JsonObject;
 import com.hyper.connect.model.enums.*;
 
-import javax.xml.crypto.Data;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Timer;
@@ -55,8 +54,6 @@ public class AttributeThread extends Thread{
 	private Processor1d processor1d;
 	private String currentValue;
 	private String currentDateTime;
-
-	private ArrayList<DataRecord> latestDataRecordList;
 	
 	public AttributeThread(Attribute attribute, AttributeManagement attributeManager){
 		this.attribute=attribute;
@@ -69,7 +66,6 @@ public class AttributeThread extends Thread{
 		this.interval=this.attribute.getInterval()*1000;
 		this.formatter=new SimpleDateFormat("yyyy/MM/dd HH:mm");
 		this.formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-		latestDataRecordList=new ArrayList<DataRecord>();
 	}
 	
 	public Attribute getAttribute(){
@@ -182,7 +178,6 @@ public class AttributeThread extends Thread{
 			this.store.put(key, avg);
 		}
 		catch(NumberFormatException nfe){}
-		saveLatestValue(key, value);
 	}
 	
 	private void eventCheck(String value){
@@ -206,7 +201,8 @@ public class AttributeThread extends Thread{
 				jsonObject.addProperty("command", "executeAttributeAction");
 				jsonObject.addProperty("id", event.getActionEdgeAttributeId());
 				jsonObject.addProperty("triggerValue", event.getTriggerValue());
-				elastosCarrier.sendDataToDevice(event.getActionDeviceUserId(), jsonObject);
+				String jsonString=jsonObject.toString();
+				elastosCarrier.sendFriendMessage(event.getActionDeviceUserId(), jsonString);
 			}
 			else if(device.getConnectionState()==DeviceConnectionState.OFFLINE){
 				event.setState(EventState.DEACTIVATED);
@@ -215,21 +211,9 @@ public class AttributeThread extends Thread{
 				jsonObject.addProperty("command", "changeEventState");
 				jsonObject.addProperty("globalEventId", event.getGlobalEventId());
 				jsonObject.addProperty("state", false);
-				elastosCarrier.sendDataToOnlineControllers(jsonObject);
+				elastosCarrier.sendDataToControllers(jsonObject);
 			}
 		}
-	}
-
-	private void saveLatestValue(String key, String value){
-		DataRecord dataRecord=new DataRecord(key, value);
-		if(latestDataRecordList.size()>=10){
-			latestDataRecordList.remove(0);
-		}
-		latestDataRecordList.add(dataRecord);
-	}
-
-	public ArrayList<DataRecord> getLatestDataRecordList(){
-		return latestDataRecordList;
 	}
 	
 	public void stopScheduler(){

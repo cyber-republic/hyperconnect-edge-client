@@ -3,7 +3,9 @@ package com.hyper.connect.controller;
 import com.hyper.connect.App;
 import com.hyper.connect.model.*;
 import com.hyper.connect.management.HistoryManagement;
-import com.hyper.connect.model.enums.*;
+import com.hyper.connect.model.enums.AttributeType;
+import com.hyper.connect.model.enums.EventAverage;
+import com.hyper.connect.model.enums.PinnedChartWindow;
 import com.hyper.connect.util.CustomUtil;
 
 import javafx.scene.control.*;
@@ -367,7 +369,7 @@ public class SensorHistoryController{
 					showData(filename, attribute, dateTime);
 				}
 				else{
-					app.showMessageStrip(NotificationType.WARNING, "All options must be selected.", sensorHistoryPane);
+					app.showMessageStrip("Warning", "All options must be selected.", sensorHistoryPane);
 				}
 				
 				return null;
@@ -554,10 +556,10 @@ public class SensorHistoryController{
 							currentPinnedChart=newPinnedChart;
 							favoriteImageView.setImage(starImage);
 							favoriteButton.setDisable(false);
-							app.showMessageStrip(NotificationType.SUCCESS, "Chart has been pinned to the dashboard.", sensorHistoryPane);
+							app.showMessageStrip("Success", "Chart has been pinned to the dashboard.", sensorHistoryPane);
 						}
 						else{
-							app.showMessageStrip(NotificationType.ERROR, "Sorry, something went wrong pinning a chart to the dashboard.", sensorHistoryPane);
+							app.showMessageStripAndSave("Error", "System", "Sorry, something went wrong pinning a chart to the dashboard.", sensorHistoryPane);
 						}
 					}
 				}
@@ -567,10 +569,10 @@ public class SensorHistoryController{
 						currentPinnedChart=null;
 						favoriteImageView.setImage(starImageEmpty);
 						favoriteButton.setDisable(false);
-						app.showMessageStrip(NotificationType.SUCCESS, "Chart has been unpinned from the dashboard.", sensorHistoryPane);
+						app.showMessageStrip("Success", "Chart has been unpinned from the dashboard.", sensorHistoryPane);
 					}
 					else{
-						app.showMessageStrip(NotificationType.ERROR, "Sorry, something went wrong unpinning a chart from the dashboard.", sensorHistoryPane);
+						app.showMessageStripAndSave("Error", "System", "Sorry, something went wrong unpinning a chart from the dashboard.", sensorHistoryPane);
 					}
 				}
 				return null;
