@@ -434,7 +434,7 @@ public class AddEventController{
 		boolean canContinue=true;
 		String name=nameTextField.getText();
 		if(name.equals("")){
-			this.app.showMessageStrip("Warning", "Please fill out all required fields.", addEventPane);
+			this.app.showMessageStrip(NotificationType.WARNING, "Please fill out all required fields.", addEventPane);
 			canContinue=false;
 		}
 		
@@ -448,11 +448,11 @@ public class AddEventController{
 			}
 		}
 		if(this.conditionValue.equals("")){
-			this.app.showMessageStrip("Warning", "Please fill out all required fields.", addEventPane);
+			this.app.showMessageStrip(NotificationType.WARNING, "Please fill out all required fields.", addEventPane);
 			canContinue=false;
 		}
 		else if(this.conditionValue.contains(" ")){
-			this.app.showMessageStrip("Warning", "Event Value cannot contain whitespace.", addEventPane);
+			this.app.showMessageStrip(NotificationType.WARNING, "Event Value cannot contain whitespace.", addEventPane);
 			canContinue=false;
 		}
 		
@@ -466,11 +466,11 @@ public class AddEventController{
 			}
 		}
 		if(this.triggerValue.equals("")){
-			this.app.showMessageStrip("Warning", "Please fill out all required fields.", addEventPane);
+			this.app.showMessageStrip(NotificationType.WARNING, "Please fill out all required fields.", addEventPane);
 			canContinue=false;
 		}
 		else if(this.triggerValue.contains(" ")){
-			this.app.showMessageStrip("Warning", "Trigger Value cannot contain whitespace.", addEventPane);
+			this.app.showMessageStrip(NotificationType.WARNING, "Trigger Value cannot contain whitespace.", addEventPane);
 			canContinue=false;
 		}
 		
@@ -483,15 +483,16 @@ public class AddEventController{
 					Event newEvent=app.getDatabase().saveEvent(new Event(0, globalEventId, name, EventType.LOCAL, EventState.DEACTIVATED, average, condition, conditionValue, triggerValue, deviceUserId, sourceSensor.getId(), sourceAttribute.getId(), deviceUserId, actionSensor.getId(), actionAttribute.getId(), EventEdgeType.SOURCE_AND_ACTION));
 					if(newEvent!=null){
 						Platform.runLater(() -> app.setEventsLayout());
-						app.showMessageStripAndSave("Success", "Event", "Event '"+newEvent.getName()+" ("+newEvent.getId()+")' has been added.", addEventPane);
+						Notification notification=new Notification(-1, NotificationType.SUCCESS, NotificationCategory.EVENT, newEvent.getGlobalEventId(), "Event '"+newEvent.getName()+" ("+newEvent.getId()+")' has been added.", CustomUtil.getCurrentDateTime());
+						app.showAndSaveNotification(notification, addEventPane);
 						JsonElement jsonEvent=new Gson().toJsonTree(newEvent);
 						JsonObject jsonObject=new JsonObject();
 						jsonObject.addProperty("command", "addEvent");
 						jsonObject.add("sensor", jsonEvent);
-						app.getElastosCarrier().sendDataToControllers(jsonObject);
+						app.getElastosCarrier().sendDataToOnlineControllers(jsonObject);
 					}
 					else{
-						app.showMessageStripAndSave("Error", "Event", "Sorry, something went wrong adding the event '"+newEvent.getName()+"'.", addEventPane);
+						app.showMessageStrip(NotificationType.ERROR, "Sorry, something went wrong adding the event '"+newEvent.getName()+"'.", addEventPane);
 					}
 					return null;
 				}

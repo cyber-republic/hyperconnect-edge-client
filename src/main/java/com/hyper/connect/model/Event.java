@@ -171,4 +171,26 @@ public class Event{
 	public void setEdgeType(EventEdgeType edgeType){
 		this.edgeType=edgeType;
 	}
+
+	@Override
+	public String toString(){
+		return "Event{"+
+				"id="+id+
+				", globalEventId='"+globalEventId+'\''+
+				", name='"+name+'\''+
+				", type="+type+
+				", state="+state+
+				", average="+average+
+				", condition="+condition+
+				", conditionValue='"+conditionValue+'\''+
+				", triggerValue='"+triggerValue+'\''+
+				", sourceDeviceUserId='"+sourceDeviceUserId+'\''+
+				", sourceEdgeSensorId="+sourceEdgeSensorId+
+				", sourceEdgeAttributeId="+sourceEdgeAttributeId+
+				", actionDeviceUserId='"+actionDeviceUserId+'\''+
+				", actionEdgeSensorId="+actionEdgeSensorId+
+				", actionEdgeAttributeId="+actionEdgeAttributeId+
+				", edgeType="+edgeType+
+				'}';
+	}
 }

@@ -1,7 +1,11 @@
 package com.hyper.connect.controller;
 
 import com.hyper.connect.App;
+import com.hyper.connect.model.Notification;
 import com.hyper.connect.model.enums.ControllerState;
+import com.hyper.connect.model.enums.NotificationCategory;
+import com.hyper.connect.model.enums.NotificationType;
+import com.hyper.connect.util.CustomUtil;
 import com.hyper.connect.util.QRCodeUtil;
 import com.hyper.connect.model.Controller;
 
@@ -134,14 +138,17 @@ public class ControllersController{
 													boolean updateResult=app.getDatabase().updateController(controller);
 													if(updateResult){
 														controllerListTableView.getItems().set(getIndex(), controller);
-														app.showMessageStripAndSave("Success", "Controller", "Controller '"+controller.getUserId()+"' has been accepted.", controllersPane);
+														Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.DEVICE, app.getElastosCarrier().getUserId(), "Controller '"+controller.getUserId()+"' has been accepted.", CustomUtil.getCurrentDateTime());
+														app.showAndSaveNotification(notification, controllersPane);
 													}
 													else{
-														app.showMessageStripAndSave("Error", "Controller", "Sorry, something went wrong accepting the controller '"+controller.getUserId()+"'.", controllersPane);
+														Notification notification=new Notification(0, NotificationType.ERROR, NotificationCategory.DEVICE, app.getElastosCarrier().getUserId(), "Sorry, something went wrong accepting the controller '"+controller.getUserId()+"'.", CustomUtil.getCurrentDateTime());
+														app.showAndSaveNotification(notification, controllersPane);
 													}
 												}
 												else{
-													app.showMessageStripAndSave("Error", "Controller", "Sorry, something went wrong accepting the controller '"+controller.getUserId()+"'.", controllersPane);
+													Notification notification=new Notification(0, NotificationType.ERROR, NotificationCategory.DEVICE, app.getElastosCarrier().getUserId(), "Sorry, something went wrong accepting the controller '"+controller.getUserId()+"'.", CustomUtil.getCurrentDateTime());
+													app.showAndSaveNotification(notification, controllersPane);
 												}
 												return null;
 											}
@@ -184,14 +191,17 @@ public class ControllersController{
 															boolean deleteResult=app.getDatabase().deleteControllerByControllerId(controller.getId());
 															if(deleteResult){
 																controllerObservableList.removeAll(controller);
-																app.showMessageStripAndSave("Success", "Controller", "Controller '"+controller.getUserId()+"' has been deleted.", controllersPane);
+																Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.DEVICE, app.getElastosCarrier().getUserId(), "Controller '"+controller.getUserId()+"' has been deleted.", CustomUtil.getCurrentDateTime());
+																app.showAndSaveNotification(notification, controllersPane);
 															}
 															else{
-																app.showMessageStripAndSave("Error", "Controller", "Sorry, something went wrong deleting the controller '"+controller.getUserId()+"'.", controllersPane);
+																Notification notification=new Notification(0, NotificationType.ERROR, NotificationCategory.DEVICE, app.getElastosCarrier().getUserId(), "Sorry, something went wrong deleting the controller '"+controller.getUserId()+"'.", CustomUtil.getCurrentDateTime());
+																app.showAndSaveNotification(notification, controllersPane);
 															}
 														}
 														else{
-															app.showMessageStripAndSave("Error", "Controller", "Sorry, something went wrong deleting the controller '"+controller.getUserId()+"'.", controllersPane);
+															Notification notification=new Notification(0, NotificationType.ERROR, NotificationCategory.DEVICE, app.getElastosCarrier().getUserId(), "Sorry, something went wrong deleting the controller '"+controller.getUserId()+"'.", CustomUtil.getCurrentDateTime());
+															app.showAndSaveNotification(notification, controllersPane);
 														}
 														return null;
 													}

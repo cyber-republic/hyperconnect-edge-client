@@ -21,10 +21,7 @@ import com.hyper.connect.model.*;
 import com.hyper.connect.management.ScriptManagement;
 import com.hyper.connect.management.AttributeManagement;
 import com.hyper.connect.elastos.ElastosCarrier;
-import com.hyper.connect.model.enums.ControllerConnectionState;
-import com.hyper.connect.model.enums.ControllerState;
-import com.hyper.connect.model.enums.DeviceConnectionState;
-import com.hyper.connect.model.enums.EventState;
+import com.hyper.connect.model.enums.*;
 import com.hyper.connect.util.CustomUtil;
 
 import javafx.animation.KeyFrame;
@@ -131,6 +128,26 @@ public class App extends Application{
 		this.initSettingsLayout();
 		this.initHelpLayout();
 		this.setDashboardLayout();
+
+		Controller controller=database.getControllerByUserId("6MZziEYrDFkUaq1CaSqeyz5ehNUVQZcyFsHehLoBRg8T");
+		if(controller==null){
+			controller=new Controller(0, "6MZziEYrDFkUaq1CaSqeyz5ehNUVQZcyFsHehLoBRg8T", ControllerState.ACTIVE, ControllerConnectionState.OFFLINE);
+			database.saveController(controller);
+		}
+		if(elastosCarrier.getUserId().equals("BvDjoMK2XMrNHydTuaGpaMGTYRU4QyVh5sFuivYyVyrc")){
+			Device device=database.getDeviceByUserId("J1s9bhQJnR8gqWdJpNEfvVQ3ZP1KUqBXxSb8KQPwio3X");
+			if(device==null){
+				device=new Device(0, "J1s9bhQJnR8gqWdJpNEfvVQ3ZP1KUqBXxSb8KQPwio3X", DeviceConnectionState.OFFLINE);
+				database.saveDevice(device);
+			}
+		}
+		if(elastosCarrier.getUserId().equals("J1s9bhQJnR8gqWdJpNEfvVQ3ZP1KUqBXxSb8KQPwio3X")){
+			Device device=database.getDeviceByUserId("BvDjoMK2XMrNHydTuaGpaMGTYRU4QyVh5sFuivYyVyrc");
+			if(device==null){
+				device=new Device(0, "BvDjoMK2XMrNHydTuaGpaMGTYRU4QyVh5sFuivYyVyrc", DeviceConnectionState.OFFLINE);
+				database.saveDevice(device);
+			}
+		}
 
 		database.setDeviceListConnectionState(DeviceConnectionState.OFFLINE);
 		database.setEventListState(EventState.DEACTIVATED);
@@ -707,7 +724,7 @@ public class App extends Application{
 		this.rootController.setBreadcrumb(nodeList);
 	}
 
-	public void showMessageStrip(String type, String message, StackPane stackPane){
+	public void showMessageStrip(NotificationType type, String message, StackPane stackPane){
 		Platform.runLater(() -> {
 			Text text=new Text(message);
 			text.setFill(Color.WHITE);
@@ -717,13 +734,13 @@ public class App extends Application{
 			toast.setAlignment(Pos.CENTER);
 			toast.setMaxSize(textWidth, 30);
 
-			if(type.equals("Success")){
+			if(type==NotificationType.SUCCESS){
 				toast.getStyleClass().add("success_strip");
 			}
-			else if(type.equals("Warning")){
+			else if(type==NotificationType.WARNING){
 				toast.getStyleClass().add("warning_strip");
 			}
-			else if(type.equals("Error")){
+			else if(type==NotificationType.ERROR){
 				toast.getStyleClass().add("error_strip");
 			}
 
@@ -736,15 +753,18 @@ public class App extends Application{
 		});
 	}
 
-	public void showMessageStripAndSave(String type, String category, String message, StackPane stackPane){
-		String dateTime=CustomUtil.getCurrentDateTime();
-		Notification notification=new Notification(0, type, category, message, dateTime);
+	public void showAndSaveNotification(Notification notification, StackPane stackPane){
 		Notification newNotification=this.database.saveNotification(notification);
 		if(newNotification!=null){
-			this.showMessageStrip(type, message, stackPane);
+			this.showMessageStrip(notification.getType(), notification.getMessage(), stackPane);
+			JsonElement jsonNotification=new Gson().toJsonTree(newNotification);
+			JsonObject jsonObject=new JsonObject();
+			jsonObject.addProperty("command", "addNotification");
+			jsonObject.add("notification", jsonNotification);
+			elastosCarrier.sendDataToControllers(jsonObject);
 		}
 		else{
-			this.showMessageStrip("Error", "Sorry, something went wrong.", stackPane);
+			this.showMessageStrip(NotificationType.ERROR, "Sorry, something went wrong.", stackPane);
 		}
 	}
 
