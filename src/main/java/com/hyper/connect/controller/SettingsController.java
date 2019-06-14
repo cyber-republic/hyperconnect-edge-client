@@ -1,6 +1,7 @@
 package com.hyper.connect.controller;
 
 import com.hyper.connect.App;
+import com.hyper.connect.model.enums.NotificationType;
 import com.hyper.connect.util.ChoiceItem;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -166,10 +167,10 @@ public class SettingsController{
 				}
 				
 				if(errorCount==0){
-					app.showMessageStripAndSave("Success", "System", "Settings have been saved.", settingsPane);
+					app.showMessageStrip(NotificationType.SUCCESS, "Settings have been saved.", settingsPane);
 				}
 				else{
-					app.showMessageStripAndSave("Error", "System", "Sorry, something went wrong saving the settings.", settingsPane);
+					app.showMessageStrip(NotificationType.ERROR, "Sorry, something went wrong saving the settings.", settingsPane);
 				}
 				
 				

@@ -3,6 +3,7 @@ package com.hyper.connect.controller;
 import com.hyper.connect.App;
 import com.hyper.connect.model.Notification;
 
+import com.hyper.connect.model.enums.NotificationType;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -71,19 +72,19 @@ public class NotificationsController{
 								}
 								else{
 									Notification notification=getTableView().getItems().get(getIndex());
-									String type=notification.getType();
+									NotificationType type=notification.getType();
 									ImageView typeImageView=new ImageView();
 									typeImageView.setFitWidth(18);
 									typeImageView.setFitHeight(18);
-									if(type.equals("Success")){
+									if(type==NotificationType.SUCCESS){
 										Image doneImage=new Image(getClass().getClassLoader().getResourceAsStream("icons/baseline_done_green_24.png"));
 										typeImageView.setImage(doneImage);
 									}
-									else if(type.equals("Warning")){
+									else if(type==NotificationType.WARNING){
 										Image warningImage=new Image(getClass().getClassLoader().getResourceAsStream("icons/baseline_warning_orange_24.png"));
 										typeImageView.setImage(warningImage);
 									}
-									else if(type.equals("Error")){
+									else if(type==NotificationType.ERROR){
 										Image errorImage=new Image(getClass().getClassLoader().getResourceAsStream("icons/baseline_error_red_24.png"));
 										typeImageView.setImage(errorImage);
 									}
