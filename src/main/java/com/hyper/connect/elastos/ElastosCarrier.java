@@ -1,6 +1,8 @@
 package com.hyper.connect.elastos;
 
+import com.google.gson.JsonArray;
 import com.hyper.connect.App;
+import com.hyper.connect.management.HistoryManagement;
 import com.hyper.connect.model.*;
 import com.hyper.connect.elastos.common.Synchronizer;
 import com.hyper.connect.elastos.common.TestOptions;
@@ -16,12 +18,19 @@ import org.elastos.carrier.PresenceStatus;
 
 import java.io.*;
 import java.lang.Thread;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ConcurrentMap;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import javax.xml.crypto.Data;
 
 
 public class ElastosCarrier extends Thread{
@@ -184,6 +193,14 @@ public class ElastosCarrier extends Thread{
 
 	public void sendDataToControllers(JsonObject jsonObject){
 		String jsonString=jsonObject.toString();
+		ArrayList<Controller> controllerList=app.getDatabase().getControllerList();
+		for(Controller controller : controllerList){
+			sendFriendMessage(controller.getUserId(), jsonString);
+		}
+	}
+
+	public void sendDataToOnlineControllers(JsonObject jsonObject){
+		String jsonString=jsonObject.toString();
 		ArrayList<Controller> controllerList=app.getDatabase().getOnlineControllerList();
 		for(Controller controller : controllerList){
 			sendFriendMessage(controller.getUserId(), jsonString);
@@ -191,6 +208,11 @@ public class ElastosCarrier extends Thread{
 	}
 
 	public void sendDataToDevice(String deviceUserId, JsonObject jsonObject){
+		String jsonString=jsonObject.toString();
+		sendFriendMessage(deviceUserId, jsonString);
+	}
+
+	public void sendDataToOnlineDevice(String deviceUserId, JsonObject jsonObject){
 		Device device=app.getDatabase().getDeviceByUserId(deviceUserId);
 		if(device.getConnectionState()==DeviceConnectionState.ONLINE){
 			String jsonString=jsonObject.toString();
@@ -225,13 +247,13 @@ public class ElastosCarrier extends Thread{
 		
 		@Override
 		public void onFriends(Carrier carrier, List<FriendInfo> friends){
-			//System.out.println("CarrierHandler - onFriends - "+friends);
+			System.out.println("CarrierHandler - onFriends - "+friends);
 			syncher.wakeup();
 		}
 
 		@Override
 		public void onFriendConnection(Carrier carrier, String friendId, ConnectionStatus status){
-			//System.out.println("CarrierHandler - onFriendConnection - "+friendId+" - "+status);
+			System.out.println("CarrierHandler - onFriendConnection - "+friendId+" - "+status);
 			Device device=app.getDatabase().getDeviceByUserId(friendId);
 			if(device!=null){
 				if(status==ConnectionStatus.Connected){
@@ -267,7 +289,7 @@ public class ElastosCarrier extends Thread{
 
 		@Override
 		public void onFriendRequest(Carrier carrier, String userId, UserInfo info, String hello){
-			//System.out.println("CarrierHandler - onFriendRequest - "+userId+" - "+hello);
+			System.out.println("CarrierHandler - onFriendRequest - "+userId+" - "+hello);
 			if(hello.equals(CONTROLLER_CONNECTION_KEYWORD)){
 				Controller controller=app.getDatabase().getControllerByUserId(userId);
 				if(controller==null){
@@ -287,7 +309,7 @@ public class ElastosCarrier extends Thread{
 
 		@Override
 		public void onFriendAdded(Carrier carrier, FriendInfo info){
-			//System.out.println("CarrierHandler - onFriendAdded - "+info);
+			System.out.println("CarrierHandler - onFriendAdded - "+info);
 			Controller controller=app.getDatabase().getControllerByUserId(info.getUserId());
 			if(controller==null){
 				Device device=app.getDatabase().getDeviceByUserId(info.getUserId());
@@ -301,14 +323,14 @@ public class ElastosCarrier extends Thread{
 
 		@Override
 		public void onFriendRemoved(Carrier carrier, String friendId){
-			//System.out.println("CarrierHandler - onFriendRemoved - "+friendId);
+			System.out.println("CarrierHandler - onFriendRemoved - "+friendId);
 			syncher.wakeup();
 		}
 
 		@Override
 		public void onFriendMessage(Carrier carrier, String from, byte[] message){
 			String messageText=new String(message);
-			//System.out.println("CarrierHandler - onFriendMessage - "+from+" - "+messageText);
+			System.out.println("CarrierHandler - onFriendMessage - "+from+" - "+messageText);
 			Gson gson=new Gson();
 			JsonObject resultObject=gson.fromJson(messageText, JsonObject.class);
 			String command=resultObject.get("command").getAsString();
@@ -406,6 +428,9 @@ public class ElastosCarrier extends Thread{
 				Event newEvent=new Event(0, globalEventId, name, type, state, average, condition, conditionValue, triggerValue, sourceDeviceUserId, sourceEdgeSensorId, sourceEdgeAttributeId, actionDeviceUserId, actionEdgeSensorId, actionEdgeAttributeId, edgeType);
 				app.getDatabase().saveEvent(newEvent);
 			}
+			else if(command.equals("deleteEvent")){
+				String globalEventId=resultObject.get("globalEventId").getAsString();
+			}
 			else if(command.equals("getValue")){
 				int attributeId=resultObject.get("attributeId").getAsInt();
 				DataRecord dataRecord=app.getAttributeManager().getCurrentDataRecord(attributeId);
@@ -422,6 +447,18 @@ public class ElastosCarrier extends Thread{
 				responseObject.add("dataRecord", jsonDataRecord);
 				String jsonString=responseObject.toString();
 				sendFriendMessage(from, jsonString);
+			}
+			else if(command.equals("getHistoryValue")){
+				int attributeId=resultObject.get("attributeId").getAsInt();
+				ArrayList<DataRecord> latestDataRecordList=app.getAttributeManager().getLatestDataRecordList(attributeId);
+				if(latestDataRecordList!=null && latestDataRecordList.size()>0){
+					JsonElement jsonElements=new Gson().toJsonTree(latestDataRecordList);
+					JsonObject responseObject=new JsonObject();
+					responseObject.addProperty("command", "historyValue");
+					responseObject.add("dataRecordList", jsonElements);
+					String jsonString=responseObject.toString();
+					sendFriendMessage(from, jsonString);
+				}
 			}
 			syncher.wakeup();
 		}
@@ -475,6 +512,7 @@ public class ElastosCarrier extends Thread{
 				libList.add("libcarrierjni.dll");
 				libList.add("pthreadVC2.dll");
 				libList.add("libgcc_s_seh-1.dll");
+				//libList.add("libgcc_s_dw2-1.dll");
 				libList.add("ucrtbased.dll");
 				libList.add("vcruntime140d.dll");
 

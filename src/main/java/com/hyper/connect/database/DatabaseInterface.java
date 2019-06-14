@@ -63,7 +63,9 @@ public interface DatabaseInterface{
 	public ArrayList<Event> getEventList();
 
 	public ArrayList<Event> getEventListByType(EventType type);
-	
+
+	public ArrayList<Event> getEventListByAttributeId(int attributeId);
+
 	public ArrayList<Event> getEventListOnlyNameAndIdByAttributeId(int attributeId);
 	
 	public ArrayList<Event> getActiveEventListOnlyNameAndIdByAttributeId(int attributeId);
@@ -108,7 +110,7 @@ public interface DatabaseInterface{
 	
 	public ArrayList<Notification> getNotificationList();
 	
-	public int getNotificationCountByType(String type);
+	public int getNotificationCountByType(NotificationType type);
 	
 	
 	

@@ -29,8 +29,8 @@
                         <Font name="System Bold" size="15.0" />
                      </font>
                   </Text>
-                  <TextField fx:id="descriptionInput" disable="true" layoutX="103.0" layoutY="70.0" promptText="Enter Description (optional)" />
-                  <TextField fx:id="nameInput" disable="true" layoutX="103.0" layoutY="42.0" promptText="Enter Name (optional)" />
+                  <TextField fx:id="descriptionInput" layoutX="103.0" layoutY="70.0" promptText="Enter Description (optional)" />
+                  <TextField fx:id="nameInput" layoutX="103.0" layoutY="42.0" promptText="Enter Name (optional)" />
                   <Label fx:id="descriptionLabel" layoutX="36.0" layoutY="74.0" text="Description: " />
                   <Label fx:id="nameLabel" layoutX="59.0" layoutY="46.0" text="Name: " />
                </children>

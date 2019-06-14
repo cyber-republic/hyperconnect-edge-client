@@ -6,10 +6,8 @@ import com.google.gson.JsonObject;
 import com.hyper.connect.App;
 import com.hyper.connect.model.*;
 
-import com.hyper.connect.model.enums.AttributeState;
-import com.hyper.connect.model.enums.EventEdgeType;
-import com.hyper.connect.model.enums.EventState;
-import com.hyper.connect.model.enums.EventType;
+import com.hyper.connect.model.enums.*;
+import com.hyper.connect.util.CustomUtil;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -255,13 +253,13 @@ public class EventsController{
 								boolean canContinue=false;
 
 								if(sourceAttribute.getState()==AttributeState.DEACTIVATED && actionAttribute.getState()==AttributeState.DEACTIVATED){
-									app.showMessageStrip("Warning", "The source and action attributes for this event must be activated.", eventsPane);
+									app.showMessageStrip(NotificationType.WARNING, "The source and action attributes for this event must be activated.", eventsPane);
 								}
 								else if(sourceAttribute.getState()==AttributeState.DEACTIVATED){
-									app.showMessageStrip("Warning", "The source attribute for this event must be activated.", eventsPane);
+									app.showMessageStrip(NotificationType.WARNING, "The source attribute for this event must be activated.", eventsPane);
 								}
 								else if(actionAttribute.getState()==AttributeState.DEACTIVATED){
-									app.showMessageStrip("Warning", "The action attribute for this event must be activated.", eventsPane);
+									app.showMessageStrip(NotificationType.WARNING, "The action attribute for this event must be activated.", eventsPane);
 								}
 								else{
 									canContinue=true;
@@ -283,20 +281,23 @@ public class EventsController{
 												localEventListTableView.getItems().set(getIndex(), event);
 												app.getAttributeManager().updateEventState(event.getSourceEdgeAttributeId(), event.getAverage());
 												if(event.getState()==EventState.ACTIVE){
-													app.showMessageStripAndSave("Success", "Event", "Event '"+event.getName()+" ("+event.getId()+")' has been activated.", eventsPane);
+													Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.EVENT, event.getGlobalEventId(), "Event '"+event.getName()+" ("+event.getId()+")' has been activated.", CustomUtil.getCurrentDateTime());
+													app.showAndSaveNotification(notification, eventsPane);
 												}
 												else{
-													app.showMessageStripAndSave("Success", "Event", "Event '"+event.getName()+" ("+event.getId()+")' has been deactivated.", eventsPane);
+													Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.EVENT, event.getGlobalEventId(), "Event '"+event.getName()+" ("+event.getId()+")' has been deactivated.", CustomUtil.getCurrentDateTime());
+													app.showAndSaveNotification(notification, eventsPane);
 												}
 
 												JsonObject jsonObject=new JsonObject();
 												jsonObject.addProperty("command", "changeEventState");
 												jsonObject.addProperty("globalEventId", event.getGlobalEventId());
 												jsonObject.addProperty("state", isSelected);
-												app.getElastosCarrier().sendDataToControllers(jsonObject);
+												app.getElastosCarrier().sendDataToOnlineControllers(jsonObject);
 											}
 											else{
-												app.showMessageStripAndSave("Error", "Event", "Sorry, something went wrong changing the state of event '"+event.getName()+" ("+event.getId()+")'.", eventsPane);
+												Notification notification=new Notification(0, NotificationType.ERROR, NotificationCategory.EVENT, event.getGlobalEventId(), "Sorry, something went wrong changing the state of event '"+event.getName()+" ("+event.getId()+")'.", CustomUtil.getCurrentDateTime());
+												app.showAndSaveNotification(notification, eventsPane);
 											}
 											return null;
 										}
@@ -337,7 +338,12 @@ public class EventsController{
 											public Void call(){
 												app.getDatabase().deleteEventByEventId(event.getId());
 												localEventObservableList.removeAll(event);
-												app.showMessageStripAndSave("Success", "Event", "Event '"+event.getName()+" ("+event.getId()+")' has been deleted.", eventsPane);
+												JsonObject jsonObject=new JsonObject();
+												jsonObject.addProperty("command", "deleteEvent");
+												jsonObject.addProperty("globalEventId", event.getGlobalEventId());
+												app.getElastosCarrier().sendDataToControllers(jsonObject);
+												Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.EVENT, event.getGlobalEventId(), "Event '"+event.getName()+" ("+event.getId()+")' has been deleted.", CustomUtil.getCurrentDateTime());
+												app.showAndSaveNotification(notification, eventsPane);
 												app.getAttributeManager().updateEventState(event.getSourceEdgeAttributeId(), event.getAverage());
 												return null;
 											}
@@ -563,13 +569,13 @@ public class EventsController{
 								boolean canContinue=false;
 
 								if(sourceAttribute.getState()==AttributeState.DEACTIVATED && actionAttribute.getState()==AttributeState.DEACTIVATED){
-									app.showMessageStrip("Warning", "The source and action attributes for this event must be activated.", eventsPane);
+									app.showMessageStrip(NotificationType.WARNING, "The source and action attributes for this event must be activated.", eventsPane);
 								}
 								else if(sourceAttribute.getState()==AttributeState.DEACTIVATED){
-									app.showMessageStrip("Warning", "The source attribute for this event must be activated.", eventsPane);
+									app.showMessageStrip(NotificationType.WARNING, "The source attribute for this event must be activated.", eventsPane);
 								}
 								else if(actionAttribute.getState()==AttributeState.DEACTIVATED){
-									app.showMessageStrip("Warning", "The action attribute for this event must be activated.", eventsPane);
+									app.showMessageStrip(NotificationType.WARNING, "The action attribute for this event must be activated.", eventsPane);
 								}
 								else{
 									canContinue=true;
@@ -582,7 +588,7 @@ public class EventsController{
 											boolean isSelected=stateButton.isSelected();
 											if(isSelected){
 												setToggleButtonState(stateButton, false);
-												app.showMessageStrip("Warning", "Global Event can be activated only by a controller.", eventsPane);
+												app.showMessageStrip(NotificationType.WARNING, "Global Event can be activated only by a controller.", eventsPane);
 											}
 											else{
 												event.setState(EventState.DEACTIVATED);
@@ -590,13 +596,13 @@ public class EventsController{
 												if(updateResult){
 													globalEventListTableView.getItems().set(getIndex(), event);
 													app.getAttributeManager().updateEventState(event.getSourceEdgeAttributeId(), event.getAverage());
-
-													app.showMessageStripAndSave("Success", "Event", "Event '"+event.getName()+" ("+event.getId()+")' has been deactivated.", eventsPane);
+													Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.EVENT, event.getGlobalEventId(), "Event '"+event.getName()+" ("+event.getId()+")' has been deactivated.", CustomUtil.getCurrentDateTime());
+													app.showAndSaveNotification(notification, eventsPane);
 													JsonObject jsonObject=new JsonObject();
 													jsonObject.addProperty("command", "changeEventState");
 													jsonObject.addProperty("globalEventId", event.getGlobalEventId());
 													jsonObject.addProperty("state", false);
-													app.getElastosCarrier().sendDataToControllers(jsonObject);
+													app.getElastosCarrier().sendDataToOnlineControllers(jsonObject);
 													if(event.getEdgeType()==EventEdgeType.SOURCE){
 														jsonObject.addProperty("edgeType", EventEdgeType.ACTION.getValue());
 														app.getElastosCarrier().sendDataToDevice(event.getActionDeviceUserId(), jsonObject);
@@ -607,7 +613,8 @@ public class EventsController{
 													}
 												}
 												else{
-													app.showMessageStripAndSave("Error", "Event", "Sorry, something went wrong changing the state of event '"+event.getName()+" ("+event.getId()+")'.", eventsPane);
+													Notification notification=new Notification(0, NotificationType.ERROR, NotificationCategory.EVENT, event.getGlobalEventId(), "Sorry, something went wrong changing the state of event '"+event.getName()+" ("+event.getId()+")'.", CustomUtil.getCurrentDateTime());
+													app.showAndSaveNotification(notification, eventsPane);
 												}
 											}
 											return null;
@@ -649,7 +656,12 @@ public class EventsController{
 											public Void call(){
 												app.getDatabase().deleteEventByEventId(event.getId());
 												globalEventObservableList.removeAll(event);
-												app.showMessageStripAndSave("Success", "Event", "Event '"+event.getName()+" ("+event.getId()+")' has been deleted.", eventsPane);
+												JsonObject jsonObject=new JsonObject();
+												jsonObject.addProperty("command", "deleteEvent");
+												jsonObject.addProperty("globalEventId", event.getGlobalEventId());
+												app.getElastosCarrier().sendDataToControllers(jsonObject);
+												Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.EVENT, event.getGlobalEventId(), "Event '"+event.getName()+" ("+event.getId()+")' has been deleted.", CustomUtil.getCurrentDateTime());
+												app.showAndSaveNotification(notification, eventsPane);
 												if(event.getEdgeType()==EventEdgeType.SOURCE){
 													app.getAttributeManager().updateEventState(event.getSourceEdgeAttributeId(), event.getAverage());
 												}
