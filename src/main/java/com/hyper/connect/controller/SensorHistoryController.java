@@ -309,12 +309,16 @@ public class SensorHistoryController{
 				Attribute attribute=null;
 				String filename="";
 				String dateTime="";
+				String pattern="";
+				String window="";
+				EventAverage average=null;
 				if(attributeIndex!=0 && windowIndex!=0 && averageIndex!=0){
 					attribute=attributeList.get(attributeIndex-1);
 					String windowKey=(String)windowChoiceBox.getSelectionModel().getSelectedItem();
+					window=windowKey;
 					String averageKey=(String)averageChoiceBox.getSelectionModel().getSelectedItem();
-					String average=getAverageByKey(averageKey);
-					filename=attribute.getId()+"_"+average+".json";
+					average=getEventAverageByString(averageKey);
+					filename=attribute.getId()+"_"+average.getShortFilename()+".json";
 					
 					if(windowKey.equals("Hour")){
 						LocalDate localDate=datePicker.getValue();
@@ -339,8 +343,7 @@ public class SensorHistoryController{
 						LocalDate localDate=datePicker.getValue();
 						if(localDate!=null){
 							String dateKey=localDate.toString();
-							String date=getDateByKey(dateKey);
-							dateTime=date;
+							dateTime=getDateByKey(dateKey);
 						}
 						else{
 							errorCount++;
@@ -358,13 +361,23 @@ public class SensorHistoryController{
 							errorCount++;
 						}
 					}
+
+					if(average==EventAverage.ONE_MINUTE || average==EventAverage.FIVE_MINUTES || average==EventAverage.FIFTEEN_MINUTES){
+						pattern="yyyy/MM/dd HH:mm";
+					}
+					else if(average==EventAverage.ONE_HOUR || average==EventAverage.THREE_HOURS || average==EventAverage.SIX_HOURS){
+						pattern="yyyy/MM/dd HH";
+					}
+					else if(average==EventAverage.ONE_DAY){
+						pattern="yyyy/MM/dd";
+					}
 				}
 				else{
 					errorCount++;
 				}
 				
 				if(errorCount==0){
-					showData(filename, attribute, dateTime);
+					showData(filename, attribute, dateTime, pattern, window, average);
 				}
 				else{
 					app.showMessageStrip(NotificationType.WARNING, "All options must be selected.", sensorHistoryPane);
@@ -376,15 +389,12 @@ public class SensorHistoryController{
 		this.app.executeAsyncTask(chartTask, sensorHistoryPane);
 	}
 	
-	private void showData(String filename, Attribute attribute, String dateTime){
+	private void showData(String filename, Attribute attribute, String dateTime, final String pattern, String window, EventAverage average){
 		HistoryManagement historyManager=new HistoryManagement();
 		ConcurrentMap<String, String> valueMap=historyManager.getHistory(filename);
-		
+
 		List<DataRecord> sortedList=valueMap.entrySet().stream().map(
-			r -> {
-				DataRecord record=new DataRecord(CustomUtil.getDateTimeByTimeZone(r.getKey(), app.getTimeZone()), r.getValue());
-				return record;
-			}
+			r -> new DataRecord(CustomUtil.getDateTimeByPatternAndTimeZone(r.getKey(), pattern, app.getTimeZone()), r.getValue())
 		).filter(
 			object -> object.getDateTime().contains(dateTime)
 		).reduce(
@@ -398,8 +408,8 @@ public class SensorHistoryController{
 				return objectList;
 			}
 		);
-		Collections.sort(sortedList, new Comparator<DataRecord>(){
-			SimpleDateFormat f=new SimpleDateFormat("yyyy/MM/dd HH:mm");
+		sortedList.sort(new Comparator<DataRecord>(){
+			SimpleDateFormat f=new SimpleDateFormat(pattern);
 			public int compare(DataRecord o1, DataRecord o2){
 				try{
 					return f.parse(o1.getDateTime()).before(f.parse(o2.getDateTime())) ? -1 : 1;
@@ -413,9 +423,40 @@ public class SensorHistoryController{
 		Platform.runLater(() -> {
 			XYChart.Series series=new XYChart.Series();
 			series.setName(attribute.getName());
-			for(int i=0;i<sortedList.size();i++){
-				series.getData().add(new XYChart.Data(sortedList.get(i).getDateTime(), Double.valueOf(sortedList.get(i).getValue())));
+
+			int startIndex=0;
+			int endIndex=0;
+			if(window.equals("Hour")){
+				if(average==EventAverage.ONE_MINUTE || average==EventAverage.FIVE_MINUTES){
+					startIndex=11;
+					endIndex=16;
+				}
 			}
+			else if(window.equals("Day")){
+				if(average==EventAverage.ONE_MINUTE || average==EventAverage.FIVE_MINUTES || average==EventAverage.FIFTEEN_MINUTES){
+					startIndex=11;
+					endIndex=16;
+				}
+				else if(average==EventAverage.ONE_HOUR){
+					startIndex=11;
+					endIndex=13;
+				}
+			}
+			else if(window.equals("Month")){
+				if(average==EventAverage.ONE_HOUR || average==EventAverage.THREE_HOURS || average==EventAverage.SIX_HOURS){
+					startIndex=0;
+					endIndex=13;
+				}
+				else if(average==EventAverage.ONE_DAY){
+					startIndex=0;
+					endIndex=10;
+				}
+			}
+
+			for(DataRecord dataRecord : sortedList){
+				series.getData().add(new XYChart.Data(dataRecord.getDateTime().substring(startIndex, endIndex), Double.valueOf(dataRecord.getValue())));
+			}
+
 			this.lineChart.getData().clear();
 			this.lineChart.getData().add(series);
 			
@@ -426,32 +467,6 @@ public class SensorHistoryController{
 			this.dateTimeColumn.setCellValueFactory(new PropertyValueFactory("dateTime"));
 			this.tableView.setItems(tableObservableList);
 		});
-	}
-	
-	private String getAverageByKey(String averageKey){
-		String average="";
-		if(averageKey.equals("1 Minute")){
-			average="1m";
-		}
-		else if(averageKey.equals("5 Minutes")){
-			average="5m";
-		}
-		else if(averageKey.equals("15 Minutes")){
-			average="15m";
-		}
-		else if(averageKey.equals("1 Hour")){
-			average="1h";
-		}
-		else if(averageKey.equals("3 Hours")){
-			average="3h";
-		}
-		else if(averageKey.equals("6 Hours")){
-			average="6h";
-		}
-		else if(averageKey.equals("1 Day")){
-			average="1d";
-		}
-		return average;
 	}
 	
 	private String getDateByKey(String dateKey){

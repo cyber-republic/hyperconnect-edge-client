@@ -6,7 +6,7 @@ import com.hyper.connect.model.enums.ControllerState;
 public class Controller{
 	private int id;
 	private String userId;
-	private ControllerState state; /*** active, pending ***/
+	private ControllerState state; /*** active, pending, deactivated ***/
 	private ControllerConnectionState connectionState; /*** online, offline ***/
 
 	public Controller(int id, String userId, ControllerState state, ControllerConnectionState connectionState){

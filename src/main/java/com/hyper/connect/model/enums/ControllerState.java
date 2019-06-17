@@ -7,7 +7,10 @@ public enum ControllerState{
     ACTIVE,
 
     @SerializedName("1")
-    PENDING;
+    PENDING,
+
+    @SerializedName("2")
+    DEACTIVATED;
 
     public int getValue(){
         switch(this){
@@ -15,6 +18,8 @@ public enum ControllerState{
                 return 0;
             case PENDING:
                 return 1;
+            case DEACTIVATED:
+                return 2;
             default:
                 throw new IllegalArgumentException("Invalid Controller State");
         }
@@ -26,6 +31,8 @@ public enum ControllerState{
                 return ACTIVE;
             case 1:
                 return PENDING;
+            case 2:
+                return DEACTIVATED;
             default:
                 throw new IllegalArgumentException("Invalid Controller State");
         }
@@ -38,6 +45,8 @@ public enum ControllerState{
                 return "Active";
             case PENDING:
                 return "Pending";
+            case DEACTIVATED:
+                return "Deactivated";
             default:
                 throw new IllegalArgumentException("Invalid Controller State");
         }

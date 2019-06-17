@@ -3,10 +3,7 @@ package com.hyper.connect.controller;
 import com.hyper.connect.App;
 import com.hyper.connect.model.*;
 import com.hyper.connect.management.HistoryManagement;
-import com.hyper.connect.model.enums.AttributeState;
-import com.hyper.connect.model.enums.EventState;
-import com.hyper.connect.model.enums.NotificationType;
-import com.hyper.connect.model.enums.PinnedChartWindow;
+import com.hyper.connect.model.enums.*;
 import com.hyper.connect.util.CustomUtil;
 
 import javafx.fxml.FXML;
@@ -146,12 +143,21 @@ public class DashboardController{
 		}
 		final String finalDateTime=dateTime;
 
+		String pattern="";
+		EventAverage average=pinnedChart.getAverage();
+		if(average==EventAverage.ONE_MINUTE || average==EventAverage.FIVE_MINUTES || average==EventAverage.FIFTEEN_MINUTES){
+			pattern="yyyy/MM/dd HH:mm";
+		}
+		else if(average==EventAverage.ONE_HOUR || average==EventAverage.THREE_HOURS || average==EventAverage.SIX_HOURS){
+			pattern="yyyy/MM/dd HH";
+		}
+		else if(average==EventAverage.ONE_DAY){
+			pattern="yyyy/MM/dd";
+		}
+		final String finalPattern=pattern;
 		
 		List<DataRecord> sortedList=valueMap.entrySet().stream().map(
-			r -> {
-				DataRecord record=new DataRecord(CustomUtil.getDateTimeByTimeZone(r.getKey(), app.getTimeZone()), r.getValue());
-				return record;
-			}
+			r -> new DataRecord(CustomUtil.getDateTimeByPatternAndTimeZone(r.getKey(), finalPattern, app.getTimeZone()), r.getValue())
 		).filter(
 			object -> object.getDateTime().contains(finalDateTime)
 		).reduce(
@@ -165,8 +171,8 @@ public class DashboardController{
 				return objectList;
 			}
 		);
-		Collections.sort(sortedList, new Comparator<DataRecord>(){
-			SimpleDateFormat f=new SimpleDateFormat("yyyy/MM/dd HH:mm");
+		sortedList.sort(new Comparator<DataRecord>(){
+			SimpleDateFormat f=new SimpleDateFormat(finalPattern);
 			public int compare(DataRecord o1, DataRecord o2){
 				try{
 					return f.parse(o1.getDateTime()).before(f.parse(o2.getDateTime())) ? -1 : 1;
@@ -180,10 +186,40 @@ public class DashboardController{
 		final LineChart<String, Number> lineChart=new LineChart<String, Number>(new CategoryAxis(), new NumberAxis());
 		XYChart.Series series=new XYChart.Series();
 		series.setName("Attribute: "+pinnedChart.getAttributeName()+" ("+pinnedChart.getAttributeId()+") --- Window: "+pinnedChart.getWindow()+" --- Average: "+pinnedChart.getAverage());
-		
-		for(int i=0;i<sortedList.size();i++){
-			series.getData().add(new XYChart.Data(sortedList.get(i).getDateTime(), Double.valueOf(sortedList.get(i).getValue())));
+
+		int startIndex=0;
+		int endIndex=0;
+		if(window==PinnedChartWindow.HOUR){
+			if(average==EventAverage.ONE_MINUTE || average==EventAverage.FIVE_MINUTES){
+				startIndex=11;
+				endIndex=16;
+			}
 		}
+		else if(window==PinnedChartWindow.DAY){
+			if(average==EventAverage.ONE_MINUTE || average==EventAverage.FIVE_MINUTES || average==EventAverage.FIFTEEN_MINUTES){
+				startIndex=11;
+				endIndex=16;
+			}
+			else if(average==EventAverage.ONE_HOUR){
+				startIndex=11;
+				endIndex=13;
+			}
+		}
+		else if(window==PinnedChartWindow.MONTH){
+			if(average==EventAverage.ONE_HOUR || average==EventAverage.THREE_HOURS || average==EventAverage.SIX_HOURS){
+				startIndex=0;
+				endIndex=13;
+			}
+			else if(average==EventAverage.ONE_DAY){
+				startIndex=0;
+				endIndex=10;
+			}
+		}
+
+		for(DataRecord dataRecord : sortedList){
+			series.getData().add(new XYChart.Data(dataRecord.getDateTime().substring(startIndex, endIndex), Double.valueOf(dataRecord.getValue())));
+		}
+
 		lineChart.getData().clear();
 		lineChart.getData().add(series);
 		
@@ -253,30 +289,4 @@ public class DashboardController{
 		
 		return anchorPane;
 	}
-	
-	/*private String getAverageKeyByAverage(String average){
-		String averageKey="";
-		if(average.equals("1m")){
-			averageKey="1 Minute";
-		}
-		else if(average.equals("5m")){
-			averageKey="5 Minutes";
-		}
-		else if(average.equals("15m")){
-			averageKey="15 Minutes";
-		}
-		else if(average.equals("1h")){
-			averageKey="1 Hour";
-		}
-		else if(average.equals("3h")){
-			averageKey="3 Hours";
-		}
-		else if(average.equals("6h")){
-			averageKey="6 Hours";
-		}
-		else if(average.equals("1d")){
-			averageKey="1 Day";
-		}
-		return average;
-	}*/
 }

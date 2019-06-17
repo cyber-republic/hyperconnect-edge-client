@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.control.*?>
@@ -39,6 +40,18 @@
                                                    </font>
                                                 </Label>
                                                 <Text fx:id="addressText" strokeType="OUTSIDE" strokeWidth="0.0" text="DESzGnG35SXeSjfw12yQsQzrTBqqs6RUWbtfMMrpfMYxjPX3J516" />
+                                                <Button mnemonicParsing="false" onAction="#onCopyButton" styleClass="simple_button" text="Copy">
+                                                   <graphic>
+                                                      <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                                         <image>
+                                                            <Image url="@../icons/baseline_file_copy_white_24.png" />
+                                                         </image>
+                                                      </ImageView>
+                                                   </graphic>
+                                                   <cursor>
+                                                      <Cursor fx:constant="HAND" />
+                                                   </cursor>
+                                                </Button>
                                                 <Label text="User ID: ">
                                                    <font>
                                                       <Font name="System Bold" size="12.0" />

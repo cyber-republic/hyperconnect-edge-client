@@ -43,6 +43,22 @@ public class CustomUtil{
 	
 	public static String getDateTimeByTimeZone(String dateTime, String timeZone){
 		DateFormat dateFormat=new SimpleDateFormat("yyyy/MM/dd HH:mm");
+		//DateFormat dateFormat=new SimpleDateFormat("yyyy/MM/dd HH");
+		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		long utcLong=0;
+		try{
+			Date utcDate=dateFormat.parse(dateTime);
+			utcLong=utcDate.getTime();
+		}
+		catch(ParseException pe){}
+		dateFormat.setTimeZone(TimeZone.getTimeZone(timeZone));
+		String newDateTime=dateFormat.format(new Date(utcLong));
+		return newDateTime;
+	}
+
+	public static String getDateTimeByPatternAndTimeZone(String dateTime, String pattern, String timeZone){
+		//DateFormat dateFormat=new SimpleDateFormat("yyyy/MM/dd HH:mm");
+		DateFormat dateFormat=new SimpleDateFormat(pattern);
 		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 		long utcLong=0;
 		try{

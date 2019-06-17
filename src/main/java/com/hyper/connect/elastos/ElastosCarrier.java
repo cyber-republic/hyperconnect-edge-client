@@ -199,6 +199,11 @@ public class ElastosCarrier extends Thread{
 		}
 	}
 
+	public void sendDataToController(String controllerUserId, JsonObject jsonObject){
+		String jsonString=jsonObject.toString();
+		sendFriendMessage(controllerUserId, jsonString);
+	}
+
 	public void sendDataToOnlineControllers(JsonObject jsonObject){
 		String jsonString=jsonObject.toString();
 		ArrayList<Controller> controllerList=app.getDatabase().getOnlineControllerList();
@@ -512,9 +517,9 @@ public class ElastosCarrier extends Thread{
 				libList.add("libcarrierjni.dll");
 				libList.add("pthreadVC2.dll");
 				libList.add("libgcc_s_seh-1.dll");
-				//libList.add("libgcc_s_dw2-1.dll");
 				libList.add("ucrtbased.dll");
 				libList.add("vcruntime140d.dll");
+                libList.add("msvcp140d.dll");
 
 				for(int i=0;i<libList.size();i++){
 					String libFile=libList.get(i);

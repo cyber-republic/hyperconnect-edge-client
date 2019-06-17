@@ -1,25 +1,25 @@
 package com.hyper.connect.controller;
 
+import com.google.gson.JsonObject;
 import com.hyper.connect.App;
+import com.hyper.connect.model.Event;
 import com.hyper.connect.model.Notification;
-import com.hyper.connect.model.enums.ControllerState;
-import com.hyper.connect.model.enums.NotificationCategory;
-import com.hyper.connect.model.enums.NotificationType;
+import com.hyper.connect.model.enums.*;
 import com.hyper.connect.util.CustomUtil;
 import com.hyper.connect.util.QRCodeUtil;
 import com.hyper.connect.model.Controller;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Cursor;
-import javafx.scene.control.Button;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.util.Callback;
 import javafx.collections.FXCollections;
@@ -37,7 +37,8 @@ import java.io.IOException;
 public class ControllersController{
 	private App app;
 	private ObservableList<Controller> controllerObservableList;
-	
+	private String address="";
+
 	@FXML private StackPane controllersPane;
 	@FXML private ImageView qrCodeImageView;
 	@FXML private Text addressText;
@@ -55,6 +56,7 @@ public class ControllersController{
 	}
 	
 	public void init(String address, String userId){
+		this.address=address;
 		this.addressText.setText(address);
 		this.userIdText.setText(userId);
 		Image qrCode=QRCodeUtil.getQRCodeImage(address, 150, 150);
@@ -89,7 +91,10 @@ public class ControllersController{
 									if(state==ControllerState.ACTIVE){
 										stateText.setFill(Color.GREEN);
 									}
-									else{
+									else if(state==ControllerState.PENDING){
+										stateText.setFill(Color.ORANGE);
+									}
+									else if(state==ControllerState.DEACTIVATED){
 										stateText.setFill(Color.RED);
 									}
 									setGraphic(stateText);
@@ -106,7 +111,8 @@ public class ControllersController{
 					public TableCell call(final TableColumn<Controller, String> param){
 						final TableCell<Controller, String> cell=new TableCell<Controller, String>(){
 							final Button acceptButton=new Button("Accept");
-							final Button deleteButton=new Button();
+							final ToggleButton stateButton=new ToggleButton();
+							//final Button deleteButton=new Button();
 							
 							@Override
 							public void updateItem(String item, boolean empty){
@@ -114,8 +120,11 @@ public class ControllersController{
 								
 								acceptButton.getStyleClass().add("accept_button");
 								acceptButton.setCursor(Cursor.HAND);
-								deleteButton.getStyleClass().add("simple_button");
-								deleteButton.setCursor(Cursor.HAND);
+								stateButton.setStyle("-fx-background-color: transparent;");
+								stateButton.setPadding(new Insets(0, 0, 0, 0));
+								stateButton.setCursor(Cursor.HAND);
+								//deleteButton.getStyleClass().add("simple_button");
+								//deleteButton.setCursor(Cursor.HAND);
 								
 								if(empty){
 									setGraphic(null);
@@ -155,8 +164,53 @@ public class ControllersController{
 										};
 										app.executeAsyncTask(acceptTask, controllersPane);
 									});
+
+
+									if(controller.getState()==ControllerState.ACTIVE){
+										setToggleButtonState(stateButton, true);
+									}
+									else if(controller.getState()==ControllerState.DEACTIVATED){
+										setToggleButtonState(stateButton, false);
+									}
+									stateButton.setOnAction(stateEvent -> {
+										Task stateChangeTask=new Task<Void>(){
+											@Override
+											public Void call(){
+												boolean isSelected=stateButton.isSelected();
+												if(isSelected){
+													controller.setState(ControllerState.ACTIVE);
+												}
+												else{
+													controller.setState(ControllerState.DEACTIVATED);
+												}
+												boolean updateResult=app.getDatabase().updateController(controller);
+												if(updateResult){
+													controllerListTableView.getItems().set(getIndex(), controller);
+													if(controller.getState()==ControllerState.ACTIVE){
+														Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.DEVICE, Integer.toString(controller.getId()), "Controller '"+controller.getUserId()+" ("+controller.getId()+")' has been activated.", CustomUtil.getCurrentDateTime());
+														app.showAndSaveNotification(notification, controllersPane);
+													}
+													else if(controller.getState()==ControllerState.DEACTIVATED){
+														Notification notification=new Notification(0, NotificationType.SUCCESS, NotificationCategory.DEVICE, Integer.toString(controller.getId()), "Controller '"+controller.getUserId()+" ("+controller.getId()+")' has been deactivated.", CustomUtil.getCurrentDateTime());
+														app.showAndSaveNotification(notification, controllersPane);
+													}
+
+													JsonObject jsonObject=new JsonObject();
+													jsonObject.addProperty("command", "changeControllerState");
+													jsonObject.addProperty("state", isSelected);
+													app.getElastosCarrier().sendDataToController(controller.getUserId(), jsonObject);
+												}
+												else{
+													Notification notification=new Notification(0, NotificationType.ERROR, NotificationCategory.DEVICE, Integer.toString(controller.getId()), "Sorry, something went wrong changing the state of controller '"+controller.getUserId()+" ("+controller.getId()+")'.", CustomUtil.getCurrentDateTime());
+													app.showAndSaveNotification(notification, controllersPane);
+												}
+												return null;
+											}
+										};
+										app.executeAsyncTask(stateChangeTask, controllersPane);
+									});
 									
-									ImageView deleteImageView=new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("icons/baseline_delete_white_24.png")));
+									/*ImageView deleteImageView=new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("icons/baseline_delete_white_24.png")));
 									deleteImageView.setFitWidth(18);
 									deleteImageView.setFitHeight(18);
 									deleteButton.setGraphic(deleteImageView);
@@ -219,6 +273,14 @@ public class ControllersController{
 									if(controller.getState()==ControllerState.PENDING){
 										hbox=new HBox(acceptButton, deleteButton);
 										hbox.setSpacing(10);
+									}*/
+
+									HBox hbox=null;
+									if(controller.getState()==ControllerState.PENDING){
+										hbox=new HBox(acceptButton);
+									}
+									else{
+										hbox=new HBox(stateButton);
 									}
 									
 									setGraphic(hbox);
@@ -239,5 +301,26 @@ public class ControllersController{
 			}
 		};
 		this.app.executeAsyncTask(refreshTask, controllersPane);*/
+	}
+
+	private void setToggleButtonState(ToggleButton toggleButton, boolean state){
+		if(state){
+			ImageView onImageView=new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("icons/baseline_toggle_on_green_24.png")));
+			toggleButton.setGraphic(onImageView);
+		}
+		else{
+			ImageView offImageView=new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("icons/baseline_toggle_off_gray_24.png")));
+			toggleButton.setGraphic(offImageView);
+		}
+		toggleButton.setSelected(state);
+	}
+
+	@FXML
+	private void onCopyButton(){
+		Clipboard clipboard=Clipboard.getSystemClipboard();
+		ClipboardContent content=new ClipboardContent();
+		content.putString(address);
+		clipboard.setContent(content);
+		app.showMessageStrip(NotificationType.SUCCESS, "Address has been copied to clipboard.", controllersPane);
 	}
 }
