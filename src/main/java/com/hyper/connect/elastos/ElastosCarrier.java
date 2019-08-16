@@ -16,19 +16,24 @@ import org.elastos.carrier.UserInfo;
 import org.elastos.carrier.FriendInfo;
 import org.elastos.carrier.PresenceStatus;
 
+
 import java.io.*;
 import java.lang.Thread;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.elastos.carrier.filetransfer.*;
 
 import javax.xml.crypto.Data;
 
@@ -43,6 +48,9 @@ public class ElastosCarrier extends Thread{
 	private App app;
 	private boolean isConnected=false;
 
+	private static Manager fileTransferManager;
+	private static Map<String, FileTransfer> fileTransferMap;
+
 	static{
 		loadElastosLib();
 	}
@@ -52,6 +60,7 @@ public class ElastosCarrier extends Thread{
 		File carrierDir=CustomUtil.getDirectoryByName("carrier");
 		options=new TestOptions(carrierDir.getPath());
 		carrierHandler=new CarrierHandler();
+		fileTransferMap=new HashMap<String, FileTransfer>();
 	}
 	
 	public void run(){
@@ -59,6 +68,10 @@ public class ElastosCarrier extends Thread{
 			Carrier.initializeInstance(options, carrierHandler);
 			carrier=Carrier.getInstance();
 			carrier.start(0);
+
+			FileTransferManagerHandler fileTransferManagerHandler=new FileTransferManagerHandler();
+			Manager.initializeInstance(carrier, fileTransferManagerHandler);
+			fileTransferManager=Manager.getInstance();
 
 			synchronized(carrier){
 				carrier.wait();
@@ -279,16 +292,7 @@ public class ElastosCarrier extends Thread{
 				}
 				app.getDatabase().updateController(controller);
 			}
-			syncher.wakeup();
-		}
-
-		@Override
-		public void onFriendInfoChanged(Carrier carrier, String friendId, FriendInfo info){
-			syncher.wakeup();
-		}
-
-		@Override
-		public void onFriendPresence(Carrier carrier, String friendId, PresenceStatus presence){
+			app.refreshControllers();
 			syncher.wakeup();
 		}
 
@@ -339,7 +343,13 @@ public class ElastosCarrier extends Thread{
 			Gson gson=new Gson();
 			JsonObject resultObject=gson.fromJson(messageText, JsonObject.class);
 			String command=resultObject.get("command").getAsString();
-			if(command.equals("getData")){
+			if(command.equals("removeMe")){
+				Controller controller=app.getDatabase().getControllerByUserId(from);
+				app.getDatabase().deleteControllerByControllerId(controller.getId());
+				removeFriend(from);
+				app.refreshControllers();
+			}
+			else if(command.equals("getData")){
 				ArrayList<Sensor> sensorList=app.getDatabase().getSensorList();
 				ArrayList<Attribute> attributeList=app.getDatabase().getAttributeList();
 				ArrayList<Event> eventList=app.getDatabase().getEventList();
@@ -382,6 +392,7 @@ public class ElastosCarrier extends Thread{
 					app.getDatabase().updateAttribute(attribute);
 					app.getAttributeManager().stopAttribute(attributeId);
 				}
+				sendDataToOnlineControllers(resultObject);
 			}
 			else if(command.equals("executeAttributeAction")){
 				int attributeId=resultObject.get("id").getAsInt();
@@ -400,10 +411,10 @@ public class ElastosCarrier extends Thread{
 					event.setState(EventState.DEACTIVATED);
 				}
 				app.getDatabase().updateEvent(event);
-
 				if(edgeType==EventEdgeType.SOURCE || edgeType==EventEdgeType.SOURCE_AND_ACTION){
 					app.getAttributeManager().updateEventState(event.getSourceEdgeAttributeId(), event.getAverage());
 				}
+				sendDataToOnlineControllers(resultObject);
 			}
 			else if(command.equals("addDevice")){
 				String address=resultObject.get("address").getAsString();
@@ -463,6 +474,13 @@ public class ElastosCarrier extends Thread{
 					responseObject.add("dataRecordList", jsonElements);
 					String jsonString=responseObject.toString();
 					sendFriendMessage(from, jsonString);
+				}
+			}
+			else if(command.equals("getHistoryFiles")){
+				int attributeId=resultObject.get("attributeId").getAsInt();
+				File file1m=new HistoryManagement().getHistoryFile(attributeId+"_1m.json");
+				if(file1m.exists()){
+					sendFile(from, file1m.getAbsolutePath(), attributeId, EventAverage.ONE_MINUTE);
 				}
 			}
 			syncher.wakeup();
@@ -559,5 +577,234 @@ public class ElastosCarrier extends Thread{
 			}
 		}
 		catch(IOException ioe){}
+	}
+
+	private class FileTransferManagerHandler implements ManagerHandler{
+		@Override
+		public void onConnectRequest(Carrier carrier, String from, FileTransferInfo info){
+			System.out.println("FileTransferManagerHandler - onConnectRequest - from: "+from);
+			try{
+				String fileId=info.getFileId();
+				FileTransfer fileTransfer=fileTransferManager.newFileTransfer(from, info, new TransferHandler());
+				fileTransfer.acceptConnect();
+			}
+			catch(CarrierException e){}
+		}
+	}
+
+	private class TransferHandler implements FileTransferHandler{
+		private String userId="";
+		private String sendFilePath="";
+		private int attributeId;
+		EventAverage average=null;
+
+		private TransferHandler(){}
+
+		private TransferHandler(String userId, String sendFilePath, int attributeId, EventAverage average){
+			this.userId=userId;
+			this.sendFilePath=sendFilePath;
+			this.attributeId=attributeId;
+			this.average=average;
+		}
+
+		@Override
+		public void onStateChanged(FileTransfer filetransfer, FileTransferState state){
+			System.out.println("TransferHandler - onStateChanged - "+state);
+		}
+
+		@Override
+		public void onFileRequest(FileTransfer filetransfer, String fileId, String filename, long size){
+			System.out.println("TransferHandler - onFileRequest - "+fileId+" - "+filename);
+		}
+
+		@Override
+		public void onPullRequest(FileTransfer filetransfer, String fileId, long offset){
+			System.out.println("TransferHandler - onPullRequest - "+fileId);
+			sendData(userId, fileId, sendFilePath, attributeId, average);
+		}
+
+		@Override
+		public boolean onData(FileTransfer filetransfer, String fileId, byte[] data){
+			return false;
+		}
+
+		@Override
+		public void onDataFinished(FileTransfer filetransfer, String fileId){
+			System.out.println("TransferHandler - onDataFinished - "+fileId);
+		}
+
+		@Override
+		public void onPending(FileTransfer filetransfer, String fileId){
+			System.out.println("TransferHandler - onPending - "+fileId);
+		}
+
+		@Override
+		public void onResume(FileTransfer filetransfer, String fileId){
+			System.out.println("TransferHandler - onResume - "+fileId);
+		}
+
+		@Override
+		public void onCancel(FileTransfer filetransfer, String fileId, int status, String reason){
+			System.out.println("TransferHandler - onCancel - "+fileId);
+		}
+	}
+
+	public void sendFile(String userId, String filePath, int attributeId, EventAverage average){
+		try{
+			String fileId=FileTransfer.generateFileId();
+			File file=new File(filePath);
+			FileTransferInfo currentFileTransferInfo=new FileTransferInfo(filePath, fileId, file.length());
+
+			FileTransfer fileTransfer=fileTransferMap.get(userId);
+			if(fileTransfer==null){
+				fileTransfer=fileTransferManager.newFileTransfer(userId, currentFileTransferInfo, new TransferHandler(userId, filePath, attributeId, average));
+				fileTransfer.connect();
+				fileTransferMap.put(userId, fileTransfer);
+			}
+
+
+		}
+		catch(CarrierException e){}
+	}
+
+	public void sendAdditionalFile(String userId, String filePath, int attributeId, EventAverage average){
+		try{
+			String fileId=FileTransfer.generateFileId();
+			File file=new File(filePath);
+			FileTransferInfo currentFileTransferInfo=new FileTransferInfo(filePath, fileId, file.length());
+
+			FileTransfer fileTransfer=fileTransferMap.get(userId);
+			if(fileTransfer!=null){
+				fileTransfer.addFile(currentFileTransferInfo);
+			}
+
+
+		}
+		catch(CarrierException e){}
+	}
+
+	private void sendData(String userId, String fileId, String sendFilePath, int attributeId, EventAverage average){
+		SentDataThread sentDataThread=new SentDataThread(userId, fileId, sendFilePath, attributeId, average);
+		sentDataThread.start();
+	}
+
+	private class SentDataThread{
+		private ExecutorService executorService;
+		private Future<?> future;
+		private boolean isRunning;
+		private String userId;
+		private String fileId;
+		private String sendFilePath;
+		private int attributeId;
+		private EventAverage average;
+
+		private SentDataThread(String userid, String fileId, String sendFilePath, int attributeId, EventAverage average){
+			this.userId=userid;
+			this.fileId=fileId;
+			this.sendFilePath=sendFilePath;
+			this.attributeId=attributeId;
+			this.average=average;
+		}
+
+		public void start(){
+			executorService=Executors.newSingleThreadExecutor();
+			Runnable runnable=new Runnable(){
+				@Override
+				public void run(){
+					isRunning=true;
+					FileTransfer fileTransfer=fileTransferMap.get(userId);
+					try{
+						if(!sendFilePath.isEmpty()){
+							File file=new File(sendFilePath);
+							if(file.isFile()){
+								final long fileSize=file.length();
+								FileInputStream fis;
+								try{
+									final int size=1024;
+									fis=new FileInputStream(file);
+									byte[] buffer=new byte[size];
+									int len;
+									long sent=0;
+									String percentString;
+									while((len=fis.read(buffer))!=-1){
+										if(isRunning){
+											_writeData(fileId, buffer, len, fileTransfer);
+											sent+=len;
+											int percent=(int)(sent*100/fileSize);
+											System.out.println("SentDataThread - "+percent+"%");
+										}
+										else{
+											System.out.println("SentDataThread - close");
+											//fileTransfer.close();
+											return;
+										}
+									}
+								}
+								catch(IOException e){}
+								//System.out.println("SentDataThread - close");
+								//fileTransfer.close();
+
+								System.out.println("SentDataThread - Data finished");
+								System.out.println(average);
+								if(average==EventAverage.ONE_MINUTE){
+									File file5m=new HistoryManagement().getHistoryFile(attributeId+"_5m.json");
+									if(file5m.exists()){
+										sendAdditionalFile(userId, file5m.getAbsolutePath(), attributeId, EventAverage.FIVE_MINUTES);
+									}
+
+									File file15m=new HistoryManagement().getHistoryFile(attributeId+"_15m.json");
+									if(file15m.exists()){
+										sendAdditionalFile(userId, file15m.getAbsolutePath(), attributeId, EventAverage.FIFTEEN_MINUTES);
+									}
+
+									File file1h=new HistoryManagement().getHistoryFile(attributeId+"_1h.json");
+									if(file1h.exists()){
+										sendAdditionalFile(userId, file1h.getAbsolutePath(), attributeId, EventAverage.ONE_HOUR);
+									}
+
+									File file3h=new HistoryManagement().getHistoryFile(attributeId+"_3h.json");
+									if(file3h.exists()){
+										sendAdditionalFile(userId, file3h.getAbsolutePath(), attributeId, EventAverage.THREE_HOURS);
+									}
+
+									File file6h=new HistoryManagement().getHistoryFile(attributeId+"_6h.json");
+									if(file6h.exists()){
+										sendAdditionalFile(userId, file6h.getAbsolutePath(), attributeId, EventAverage.SIX_HOURS);
+									}
+
+									File file1d=new HistoryManagement().getHistoryFile(attributeId+"_1d.json");
+									if(file1d.exists()){
+										sendAdditionalFile(userId, file1d.getAbsolutePath(), attributeId, EventAverage.ONE_DAY);
+									}
+								}
+							}
+						}
+					}
+					catch(Exception e){}
+				}
+			};
+			future=executorService.submit(runnable);
+		}
+
+		public void stop(){
+			future.cancel(true);
+			executorService.shutdown();
+		}
+
+		private void _writeData(String fileId, byte[] data, int len, FileTransfer fileTransfer){
+			int pos=0;
+			int rc;
+			int left=len;
+			while(left>0){
+				try{
+					rc=fileTransfer.writeData(fileId, data, pos, left);
+					pos+=rc;
+					left-=rc;
+				}
+				catch(CarrierException e){
+					break;
+				}
+			}
+		}
 	}
 }

@@ -4,13 +4,10 @@ import com.hyper.connect.management.concurrent.processor.Average;
 import com.hyper.connect.model.enums.AttributeType;
 import com.hyper.connect.model.Event;
 
-import java.io.IOException;
-import java.io.FileWriter;
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.*;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.io.FileNotFoundException;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -91,6 +88,11 @@ public class HistoryManagement{
 			fileWriter.close();
 		}
 		catch(IOException ioe){}
+	}
+
+	public File getHistoryFile(String fileName){
+		File historyFile=new File(historyPath, fileName);
+		return historyFile;
 	}
 	
 	public boolean eventConditionCheck(Event event, AttributeType type, String value){

@@ -46,6 +46,7 @@ public class ControllersController{
 	@FXML private TableView controllerListTableView;
 	@FXML private TableColumn idColumn;
 	@FXML private TableColumn userIdColumn;
+	@FXML private TableColumn connectionColumn;
 	@FXML private TableColumn stateColumn;
 	@FXML private TableColumn actionsColumn;
 	
@@ -72,7 +73,37 @@ public class ControllersController{
 				controllerObservableList=FXCollections.observableArrayList(controllerList);
 				idColumn.setCellValueFactory(new PropertyValueFactory("id"));
 				userIdColumn.setCellValueFactory(new PropertyValueFactory("userId"));
-				
+
+				Callback<TableColumn<Controller, String>, TableCell<Controller, String>> connectionCellFactory=new Callback<TableColumn<Controller, String>, TableCell<Controller, String>>(){
+					@Override
+					public TableCell call(final TableColumn<Controller, String> param){
+						final TableCell<Controller, String> cell=new TableCell<Controller, String>(){
+							@Override
+							public void updateItem(String item, boolean empty){
+								super.updateItem(item, empty);
+								if(empty){
+									setGraphic(null);
+									setText(null);
+								}
+								else{
+									Controller controller=getTableView().getItems().get(getIndex());
+									ControllerConnectionState connectionState=controller.getConnectionState();
+									Text connectionStateText=new Text(connectionState.toString());
+									if(connectionState==ControllerConnectionState.ONLINE){
+										connectionStateText.setFill(Color.GREEN);
+									}
+									else if(connectionState==ControllerConnectionState.OFFLINE){
+										connectionStateText.setFill(Color.RED);
+									}
+									setGraphic(connectionStateText);
+									setText(null);
+								}
+							}
+						};
+						return cell;
+					}
+				};
+
 				Callback<TableColumn<Controller, String>, TableCell<Controller, String>> stateCellFactory=new Callback<TableColumn<Controller, String>, TableCell<Controller, String>>(){
 					@Override
 					public TableCell call(final TableColumn<Controller, String> param){
@@ -291,7 +322,8 @@ public class ControllersController{
 						return cell;
 					}
 				};
-				
+
+				connectionColumn.setCellFactory(connectionCellFactory);
 				stateColumn.setCellFactory(stateCellFactory);
 				actionsColumn.setCellFactory(actionsCellFactory);
 				

@@ -50,6 +50,7 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.concurrent.Task;
 import javafx.scene.layout.Region;
 import javafx.util.Duration;
+import org.elastos.carrier.filetransfer.FileTransferState;
 
 import java.io.*;
 import java.lang.Thread;
@@ -148,6 +149,9 @@ public class App extends Application{
 				database.saveDevice(device);
 			}
 		}*/
+
+		/*FileTransferState fileTransferState=FileTransferState.Connected;
+		System.out.println(fileTransferState);*/
 
 		database.setDeviceListConnectionState(DeviceConnectionState.OFFLINE);
 		database.setEventListState(EventState.DEACTIVATED);

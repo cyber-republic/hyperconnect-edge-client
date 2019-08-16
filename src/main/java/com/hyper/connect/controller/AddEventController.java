@@ -488,7 +488,7 @@ public class AddEventController{
 						JsonElement jsonEvent=new Gson().toJsonTree(newEvent);
 						JsonObject jsonObject=new JsonObject();
 						jsonObject.addProperty("command", "addEvent");
-						jsonObject.add("sensor", jsonEvent);
+						jsonObject.add("event", jsonEvent);
 						app.getElastosCarrier().sendDataToOnlineControllers(jsonObject);
 					}
 					else{
