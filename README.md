@@ -6,7 +6,46 @@ Edge Clients can be remotely via the Remote Controllers for [Android](https://gi
 
 ![HyperConnect IoT](/images/hyperconnect-banner.png)
 
-## Installation
+# Installation
+
+- [Installation](#installation)
+  * [Raspbian on Raspberry Pi](#raspbian-on-raspberry-pi)
+    + [Prerequisites](#prerequisites)
+    + [Installation](#installation-1)
+    + [Programming languages](#programming-languages)
+      - [Open a Terminal](#open-a-terminal)
+    + [Use Prebuilt Binaries](#use-prebuilt-binaries)
+      - [Download from the GitHub repository.](#download-from-the-github-repository)
+      - [Change directory. Replace YOUR-PATH with your local path to the directory.](#change-directory-replace-your-path-with-your-local-path-to-the-directory)
+      - [Start the HyperConnect Edge Client as Administrator using 'sudo' .](#start-the-hyperconnect-edge-client-as-administrator-using--sudo--)
+  * [Windows](#windows)
+    + [Prerequisites](#prerequisites-1)
+    + [Installation](#installation-2)
+      - [Download from the GitHub repository.](#download-from-the-github-repository-1)
+      - [Open Command Prompt(CMD).](#open-command-prompt-cmd-)
+      - [Change directory. Replace YOUR-PATH with your local path to the directory.](#change-directory-replace-your-path-with-your-local-path-to-the-directory-1)
+      - [Start the HyperConnect Edge Client.](#start-the-hyperconnect-edge-client)
+  * [Ubuntu](#ubuntu)
+    + [Prerequisites](#prerequisites-2)
+    + [Programming languages](#programming-languages-1)
+    + [Installation](#installation-3)
+      - [Use Prebuilt Binaries](#use-prebuilt-binaries-1)
+      - [Download from the GitHub repository.](#download-from-the-github-repository-2)
+      - [Change directory. Replace YOUR-PATH with your local path to the directory.](#change-directory-replace-your-path-with-your-local-path-to-the-directory-2)
+      - [Start the HyperConnect Edge Client.](#start-the-hyperconnect-edge-client-1)
+  * [MacOS](#macos)
+    + [Prerequisites](#prerequisites-3)
+    + [Programming languages](#programming-languages-2)
+    + [Installation](#installation-4)
+      - [Use Prebuilt Binaries](#use-prebuilt-binaries-2)
+      - [Download from the GitHub repository.](#download-from-the-github-repository-3)
+      - [Change directory. Replace YOUR-PATH with your local path to the directory.](#change-directory-replace-your-path-with-your-local-path-to-the-directory-3)
+      - [Start the HyperConnect Edge Client.](#start-the-hyperconnect-edge-client-2)
+  * [Libraries](#libraries)
+  * [Contribution](#contribution)
+  * [Acknowledgments](#acknowledgments)
+  * [License](#license)
+
 
 ## Raspbian on Raspberry Pi
 
@@ -63,7 +102,6 @@ sudo java -jar hyper_connect.jar
 ```
 It may take 5-15 seconds at start for the front-end to load. Please be patient.
 
-![Screenshot](install-raspberry-pi-1.png)
 
 
 ## Windows
