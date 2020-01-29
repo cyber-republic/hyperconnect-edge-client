@@ -25,7 +25,7 @@ package org.elastos.carrier;
 public class Log {
 	//private static final boolean DEBUG = BuildConfig.DEBUG;
 	private static final boolean DEBUG=false;
-
+	
 	public static void i(String tag, String msg) {
 		/*if (DEBUG)
 			android.util.Log.i(tag, msg);*/

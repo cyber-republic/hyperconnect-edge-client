@@ -16,6 +16,7 @@ import java.sql.ResultSet;
 
 public class DatabaseSQLite implements DatabaseInterface{
 	private String dbUrl;
+	private Connection connection;
 	
 	public DatabaseSQLite(String dbName){
 		File databaseDir=CustomUtil.getDirectoryByName("database");
@@ -25,14 +26,34 @@ public class DatabaseSQLite implements DatabaseInterface{
 	}
 	
 	private Connection getConnection(){
-		Connection connection=null;
+		/*Connection connection=null;
 		try{
 			connection=DriverManager.getConnection(this.dbUrl);
 		}
 		catch(SQLException e){
 			System.out.println(e.getMessage());
 		}
+		return connection;*/
+		if(connection==null){
+			try{
+				connection=DriverManager.getConnection(this.dbUrl);
+			}
+			catch(SQLException e){
+				System.out.println(e.getMessage());
+			}
+		}
 		return connection;
+	}
+
+	public void closeConnection(){
+		try{
+			getConnection().close();
+			//System.out.println("connection state: "+getConnection().isClosed());
+			connection=null;
+		}
+		catch(SQLException e){
+			System.out.println(e.getMessage());
+		}
 	}
 	
 	private void createTables(){

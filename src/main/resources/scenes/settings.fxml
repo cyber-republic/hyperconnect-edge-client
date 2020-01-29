@@ -11,18 +11,30 @@
    <children>
       <AnchorPane prefHeight="400.0" prefWidth="640.0" style="-fx-background-color: #EDF2F4;" stylesheets="@../styles/custom_styles.css">
          <children>
-            <AnchorPane fx:id="generalPane" prefHeight="120.0" prefWidth="305.0" styleClass="pane_background" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+            <AnchorPane fx:id="generalPane" prefHeight="140.0" prefWidth="305.0" styleClass="pane_background" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
                <children>
                   <Text layoutX="158.0" layoutY="112.0" strokeType="OUTSIDE" strokeWidth="0.0" text="General" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
                      <font>
                         <Font name="System Bold" size="15.0" />
                      </font>
                   </Text>
-                  <Label fx:id="timeZoneLabel" layoutX="37.0" layoutY="52.0" text="Time Zone:" />
+                  <Label fx:id="timeZoneLabel" layoutX="37.0" layoutY="52.0" text="Time Zone:" AnchorPane.leftAnchor="37.0" />
                   <ChoiceBox fx:id="timeZoneChoiceBox" layoutX="101.0" layoutY="48.0" prefWidth="150.0" />
+                  <Button layoutX="235.0" layoutY="96.0" mnemonicParsing="false" onAction="#onUpdateGeneral" styleClass="simple_button" text="Update" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                     <graphic>
+                         <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                             <image>
+                                 <Image url="@../icons/baseline_save_white_24.png" />
+                             </image>
+                         </ImageView>
+                     </graphic>
+                  </Button>
                </children>
             </AnchorPane>
-            <AnchorPane fx:id="profilePane" layoutX="325.0" layoutY="10.0" prefHeight="120.0" prefWidth="305.0" styleClass="pane_background" AnchorPane.leftAnchor="325.0" AnchorPane.topAnchor="10.0">
+            <AnchorPane fx:id="profilePane" layoutX="325.0" layoutY="10.0" prefHeight="140.0" prefWidth="305.0" styleClass="pane_background" AnchorPane.leftAnchor="325.0" AnchorPane.topAnchor="10.0">
                <children>
                   <Text layoutX="158.0" layoutY="112.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Carrier Profile" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
                      <font>
@@ -33,20 +45,81 @@
                   <TextField fx:id="nameInput" layoutX="103.0" layoutY="42.0" promptText="Enter Name (optional)" />
                   <Label fx:id="descriptionLabel" layoutX="36.0" layoutY="74.0" text="Description: " />
                   <Label fx:id="nameLabel" layoutX="59.0" layoutY="46.0" text="Name: " />
+                  <Button layoutX="214.0" layoutY="95.0" mnemonicParsing="false" onAction="#onUpdateCarrierProfile" styleClass="simple_button" text="Update" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                     <graphic>
+                        <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../icons/baseline_save_white_24.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
                </children>
             </AnchorPane>
-            <Button layoutX="585.0" layoutY="136.0" mnemonicParsing="false" onAction="#onSave" styleClass="simple_button" text="Save" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="140.0">
-               <cursor>
-                  <Cursor fx:constant="HAND" />
-               </cursor>
-               <graphic>
-                   <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
-                       <image>
-                           <Image url="@../icons/baseline_save_white_24.png" />
-                       </image>
-                   </ImageView>
-               </graphic>
-            </Button>
+            <AnchorPane fx:id="generalPane1" layoutX="10.0" layoutY="164.0" prefHeight="192.0" prefWidth="305.0" styleClass="pane_background" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="160.0">
+               <children>
+                  <Text layoutX="158.0" layoutY="112.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Backup" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                     <font>
+                        <Font name="System Bold" size="15.0" />
+                     </font>
+                  </Text>
+                  <RadioButton fx:id="importRadioButton" layoutX="33.0" layoutY="45.0" mnemonicParsing="false" text="Import" AnchorPane.leftAnchor="40.0" AnchorPane.topAnchor="45.0">
+                     <toggleGroup>
+                        <ToggleGroup fx:id="importExportGroup" />
+                     </toggleGroup>
+                  </RadioButton>
+                  <RadioButton fx:id="exportRadioButton" layoutX="114.0" layoutY="45.0" mnemonicParsing="false" selected="true" text="Export" toggleGroup="$importExportGroup" AnchorPane.leftAnchor="120.0" AnchorPane.topAnchor="45.0" />
+                  <AnchorPane fx:id="importPane" layoutY="84.0" prefHeight="108.0" prefWidth="305.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="70.0">
+                     <children>
+                        <TextField fx:id="importTextField" editable="false" layoutX="40.0" layoutY="14.0" prefHeight="25.0" prefWidth="237.0" promptText="File path to import" AnchorPane.leftAnchor="40.0" AnchorPane.rightAnchor="40.0" AnchorPane.topAnchor="20.0" />
+                        <Button layoutX="40.0" layoutY="48.0" mnemonicParsing="false" onAction="#onSelectFile" styleClass="simple_button" text="Select File" AnchorPane.leftAnchor="40.0" AnchorPane.topAnchor="50.0">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                           <graphic>
+                              <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../icons/folder-open.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                        <Button layoutX="98.0" layoutY="61.0" mnemonicParsing="false" onAction="#onImport" styleClass="simple_button" text="Import" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                           <graphic>
+                              <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../icons/database-import.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                     </children>
+                  </AnchorPane>
+                  <AnchorPane fx:id="exportPane" layoutX="10.0" layoutY="94.0" prefHeight="108.0" prefWidth="305.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="70.0">
+                     <children>
+                        <TextField fx:id="exportTextField" layoutX="40.0" layoutY="36.0" promptText="Enter file name" AnchorPane.leftAnchor="40.0" AnchorPane.topAnchor="30.0" />
+                        <Button layoutX="98.0" layoutY="61.0" mnemonicParsing="false" onAction="#onExport" styleClass="simple_button" text="Export" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                           <graphic>
+                              <ImageView fitHeight="18.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../icons/database-export.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Button>
+                     </children>
+                  </AnchorPane>
+               </children>
+            </AnchorPane>
          </children>
       </AnchorPane>
    </children>

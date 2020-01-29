@@ -7,7 +7,10 @@ import java.util.ArrayList;
 
 
 public interface DatabaseInterface{
-	
+
+	public void closeConnection();
+
+
 	public Sensor saveSensor(Sensor sensor);
 	
 	public boolean updateSensor(Sensor sensor);

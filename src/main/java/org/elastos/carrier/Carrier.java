@@ -128,8 +128,8 @@ public class Carrier {
 			carrier.handler.onFriendRemoved(carrier, friendId);
 		}
 
-		void onFriendMessage(Carrier carrier, String from, byte[] message) {
-			carrier.handler.onFriendMessage(carrier, from, message);
+		void onFriendMessage(Carrier carrier, String from, byte[] message, boolean isOffline) {
+			carrier.handler.onFriendMessage(carrier, from, message, isOffline);
 		}
 
 		void onFriendInviteRequest(Carrier carrier, String from, String data) {
@@ -352,7 +352,7 @@ public class Carrier {
 	private native boolean accept_friend(String userId);
 	private native boolean remove_friend(String userId);
 
-	private native boolean send_message(String to, byte[] message);
+	private native int send_message(String to, byte[] message);
 	private native boolean friend_invite(String to, String data,
 										 FriendInviteResponseHandler handler);
 	private native boolean reply_friend_invite(String from, int status, String reason,
@@ -439,8 +439,7 @@ public class Carrier {
 	 * @param
 	 * 		handler		The interface handler for carrier node.
 	 *
-	 * @throws
-	 * 		CarrierException
+	 * @throws CarrierException carrier exception.
 	 */
 	public static void initializeInstance(Options options, CarrierHandler handler) throws CarrierException {
 		if (options == null || handler == null)
@@ -530,6 +529,7 @@ public class Carrier {
 	 *
 	 * @return
 	 *  	the node address.
+	 * @throws CarrierException carrier exception.
 	 */
 	public String getAddress() throws CarrierException {
 		String address = get_address();
@@ -545,6 +545,7 @@ public class Carrier {
 	 *
 	 * @return
 	 * 		the nodeid.
+	 * @throws CarrierException carrier exception.
 	 */
 	public String getNodeId() throws CarrierException {
 		String nodeId = get_node_id();
@@ -560,6 +561,7 @@ public class Carrier {
 	 *
 	 * @return
 	 * 		the userid.
+	 * @throws CarrierException carrier exception.
 	 */
 	public String getUserId() throws CarrierException {
 		String userId = getNodeId();
@@ -577,9 +579,7 @@ public class Carrier {
 	 * @param
 	 * 		nospam 			An integer value.
 	 *
-	 * @throws
-	 * 		IllegalArgumentException
-	 * 		CarrierException
+	 * @throws CarrierException carrier exception.
 	 */
 	public void setNospam(int nospam) throws CarrierException {
 		byte[] value = ByteBuffer.allocate(4).putInt(nospam).array();
@@ -595,8 +595,8 @@ public class Carrier {
 	 * expected. Nospam for Carrier address is used to eliminate spam friend
 	 * request.
 	 *
-	 * @throws
-	 * 		CarrierException
+	 * @return the nospam for Carrier address.
+	 * @throws CarrierException carrier exception.
 	 */
 	public int getNospam() throws CarrierException {
 		byte[] nospam = get_nospam();
@@ -615,9 +615,8 @@ public class Carrier {
 	 * @param
 	 * 		userinfo	The user information to update for this carrier node.
 	 *
-	 * @throws
-	 * 		IllegalArgumentException
-	 * 		CarrierException
+	 * @throws IllegalArgumentException illegal exception.
+	 * @throws CarrierException carrier exception.
 	 */
 	public void setSelfInfo(UserInfo userinfo) throws CarrierException {
 		if (userinfo == null)
@@ -635,8 +634,7 @@ public class Carrier {
 	 * @return
 	 * 		the user information to the carrier node.
 	 *
-	 * @throws
-	 * 		CarrierException
+	 * @throws CarrierException carrier exception.
 	 */
 
 	public UserInfo getSelfInfo() throws CarrierException {
@@ -654,9 +652,8 @@ public class Carrier {
 	 * @param
 	 * 		presence 			the new presence status.
 	 *
-	 * @throws
-	 * 		IllegalArgumentException
-	 * 		CarrierException
+	 * @throws IllegalArgumentException illegal exception.
+	 * @throws CarrierException carrier exception.
 	 */
 	public void setPresence(PresenceStatus presence) throws CarrierException {
 		if (presence == null)
@@ -670,9 +667,8 @@ public class Carrier {
 
 	/**
 	 * Get self presence status.
-	 *
-	 * @throws
-	 * 		CarrierException
+	 * @return self presence status
+	 * @throws CarrierException carrier exception.
 	 */
 	public PresenceStatus getPresence() throws CarrierException {
 		PresenceStatus presence = get_presence();
@@ -703,8 +699,7 @@ public class Carrier {
 	 * @return
 	 * 		The list of friend information to current user
 	 *
-	 * @throws
-	 * 		CarrierException
+	 * @throws CarrierException carrier exception.
 	 */
 	public List<FriendInfo> getFriends() throws CarrierException {
 		List<FriendInfo> friends = new ArrayList<FriendInfo>();
@@ -740,9 +735,8 @@ public class Carrier {
 	 * @return
 	 * 		The friend information.
 	 *
-	 * @throws
-	 * 		IllegalArgumentException
-	 * 		CarrierException
+	 * @throws IllegalArgumentException illegal exception.
+	 * @throws CarrierException  carrier exception.
 	 */
 	public FriendInfo getFriend(String userId) throws CarrierException {
 		if (userId == null || userId.length() == 0)
@@ -767,9 +761,8 @@ public class Carrier {
 	 * @param
 	 * 		label			The new label of specified friend
 	 *
-	 * @throws
-	 * 		IllegalArgumentException
-	 * 		CarrierException
+	 * @throws IllegalArgumentException illegal exception.
+	 * @throws CarrierException  carrier exception.
 	 */
 	public void labelFriend(String userId, String label) throws CarrierException {
 		if (userId == null || userId.length() == 0 ||
@@ -791,9 +784,8 @@ public class Carrier {
 	 * @return
 	 * 		True if the user is a friend, or false if not
 	 *
-	 * @throws
-	 * 		IllegalArgumentException
-	 * 		CarrierException
+	 * @throws IllegalArgumentException illegal exception.
+	 * @throws CarrierException  carrier exception.
 	 */
 	public boolean isFriend(String userId) throws CarrierException {
 		if (userId == null || userId.length() == 0)
@@ -813,9 +805,8 @@ public class Carrier {
 	 * @param
 	 * 		hello 	 	PIN for target user, or any application defined content
 	 *
-	 * @throws
-	 * 		IllegalArgumentException
-	 * 		CarrierException
+	 * @throws IllegalArgumentException illegal exception.
+	 * @throws CarrierException  carrier exception.
 	 */
 	public void addFriend(String address, String hello) throws CarrierException {
 		if (address == null || address.length() == 0)
@@ -837,9 +828,8 @@ public class Carrier {
 	 *
 	 * @param
 	 * 		userId 		The user id who want be friend with us.
-	 * @throws
-	 *		IllegalArgumentException
-	 * 		CarrierException
+	 * @throws IllegalArgumentException illegal exception.
+	 * @throws CarrierException  carrier exception.
 	 */
 	public void acceptFriend(String userId) throws CarrierException {
 		if (userId == null || userId.length() == 0)
@@ -859,9 +849,8 @@ public class Carrier {
 	 * @param
 	 * 		userId	The target user id to remove friendship
 	 *
-	 * @throws
-	 * 		IllegalArgumentException
-	 * 		CarrierException
+	 * @throws IllegalArgumentException illegal exception.
+	 * @throws CarrierException  carrier exception.
 	 */
 	public void removeFriend(String userId) throws CarrierException {
 		if (userId == null || userId.length() == 0)
@@ -885,16 +874,20 @@ public class Carrier {
 	 * @param
 	 * 		message		The message content defined by application
 	 *
-	 * @throws
-	 * 		IllegalArgumentException
-	 * 		CarrierException
+	 * @return
+	 *		Return boolean value whether this message sent as online message or
+	 *		offline message. The value of true means the message was sent as
+	 *		online message, otherwise as offline message.
+	 *
+	 * @throws IllegalArgumentException illegal exception.
+	 * @throws CarrierException  carrier exception.
 	 */
-	public void sendFriendMessage(String to, String message) throws CarrierException {
+    public boolean sendFriendMessage(String to, String message) throws CarrierException {
 		if (to == null || to.length() == 0 ||
 				message == null || message.length() == 0 || message.length() > MAX_APP_MESSAGE_LEN)
 			throw new IllegalArgumentException();
 
-		sendFriendMessage(to, message.getBytes(UTF8));
+		return sendFriendMessage(to, message.getBytes(UTF8));
 	}
 
 	/**
@@ -909,19 +902,24 @@ public class Carrier {
 	 * @param
 	 * 		message		The message content defined by application
 	 *
-	 * @throws
-	 * 		IllegalArgumentException
-	 * 		CarrierException
+	 * @return
+	 *		Return boolean value whether this message sent as online message or
+	 *		offline message. The value of true means the message was sent as
+	 *		online message, otherwise as offline message.
+	 *
+	 * @throws IllegalArgumentException illegal exception.
+	 * @throws CarrierException  carrier exception.
 	 */
-	public void sendFriendMessage(String to, byte[] message) throws CarrierException {
-		if (to == null || to.length() == 0 ||
-				message == null || message.length == 0)
+	public boolean sendFriendMessage(String to, byte[] message) throws CarrierException {
+		if (to == null || to.length() == 0 || message == null || message.length == 0)
 			throw new IllegalArgumentException();
 
-		if (!send_message(to, message))
+		int ret = send_message(to, message);
+		if (ret < 0)
 			throw CarrierException.fromErrorCode(get_error_code());
 
 		Log.d(TAG, "Send " + message.length + " bytes message to friend " + to);
+		return (ret == 0);
 	}
 
 	/**
@@ -937,9 +935,8 @@ public class Carrier {
 	 * @param
 	 * 		handler	   	The handler to receive invite reponse
 	 *
-	 * @throws
-	 * 		IllegalArgumentException
-	 * 		CarrierException
+	 * @throws IllegalArgumentException illegal exception.
+	 * @throws CarrierException  carrier exception.
 	 */
 	public void inviteFriend(String to, String data, FriendInviteResponseHandler handler)
 			throws CarrierException {
@@ -951,7 +948,7 @@ public class Carrier {
 		Log.d(TAG, "Inviting friend " + to + "with greet data " + data);
 
 		if (!friend_invite(to, data, handler))
-			throw CarrierException.fromErrorCode(get_error_code());
+		    throw CarrierException.fromErrorCode(get_error_code());
 
 		Log.d(TAG, "Send friend invite request to " + to);
 	}
@@ -971,9 +968,8 @@ public class Carrier {
 	 * 		data		The application defined data send to target user. If the status
 	 * 	                is error, this will be ignored
 	 *
-	 * @throws
-	 * 		IllegalArgumentException
-	 * 		CarrierException
+	 * @throws IllegalArgumentException illegal exception.
+	 * @throws CarrierException  carrier exception.
 	 */
 	public void replyFriendInvite(String to, int status, String reason, String data)
 			throws CarrierException {
@@ -1006,8 +1002,7 @@ public class Carrier {
 	 * @return
 	 *	  The instance of the newly created group
 	 *
-	 * @throws
-	 * 		CarrierException
+	 * @throws CarrierException  carrier exception.
 	 */
 	public Group newGroup(GroupHandler handler) throws CarrierException {
 		Group group = new Group(this, handler);
@@ -1031,9 +1026,8 @@ public class Carrier {
 	 * @return
 	 *		The instance of the group joined in
 	 *
-	 * @throws
-	 * 		CarrierException
-	 * 		IllegalArgumentException
+	 * @throws IllegalArgumentException illegal exception.
+	 * @throws CarrierException  carrier exception.
 	 */
 	public Group groupJoin(String friendId, byte[] cookie, GroupHandler handler )
 		throws CarrierException {
@@ -1052,9 +1046,8 @@ public class Carrier {
 	 * @param
 	 *	  group		The instance of the group to leave
 	 *
-	 * @throws
-	 * 		CarrierException
-	 * 		IllegalArgumentException
+	 * @throws IllegalArgumentException illegal exception.
+	 * @throws CarrierException  carrier exception.
 	 */
 	public void groupLeave(Group group) throws CarrierException {
 		if (group == null)

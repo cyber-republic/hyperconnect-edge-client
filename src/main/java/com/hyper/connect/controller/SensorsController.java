@@ -136,7 +136,7 @@ public class SensorsController{
 											});
 											Button confirmButton=(Button)deleteDialogContent.lookup("#confirmButton");
 											confirmButton.setOnAction(confirmEvent -> {
-												Task deleteTask=new Task<Void>(){
+												Task<Void> deleteTask=new Task<Void>(){
 													@Override
 													public Void call(){
 														int errorCount=0;
@@ -249,7 +249,7 @@ public class SensorsController{
 			nameTextField.clear();
 			typeTextField.clear();
 
-			Task addTask=new Task<Void>(){
+			Task<Void> addTask=new Task<Void>(){
 				@Override
 				public Void call(){
 					Sensor newSensor=app.getDatabase().saveSensor(new Sensor(0, name, type));

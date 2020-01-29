@@ -156,8 +156,12 @@ public interface CarrierHandler {
 	 * 		from     	The id from who send the message
 	 * @param
 	 * 		message   	The message content
+	 * @param
+	 *      isOffline	The boolean value means this message is received as offline message
+	 *                  or online message. The vlaue of true means the message is received
+	 *                  as offline message, otherwise as online message.
 	 */
-	void onFriendMessage(Carrier carrier, String from, byte[] message);
+	void onFriendMessage(Carrier carrier, String from, byte[] message, boolean isOffline);
 
 	/**
 	 * The callback function to process the friend invite request.

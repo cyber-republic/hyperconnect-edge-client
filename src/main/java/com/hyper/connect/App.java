@@ -1,7 +1,6 @@
 package com.hyper.connect;
 
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 import com.hyper.connect.database.DatabaseInterface;
 import com.hyper.connect.database.DatabaseSQLite;
 import com.hyper.connect.controller.RootController;
@@ -50,7 +49,6 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.concurrent.Task;
 import javafx.scene.layout.Region;
 import javafx.util.Duration;
-import org.elastos.carrier.filetransfer.FileTransferState;
 
 import java.io.*;
 import java.lang.Thread;
@@ -95,21 +93,7 @@ public class App extends Application{
 
 	@Override
 	public void start(Stage primaryStage){
-		if(!DEBUG){
-			elastosCarrier=new ElastosCarrier(this);
-			elastosCarrier.start();
-		}
-		database=new DatabaseSQLite("local.db");
-		scriptManager=new ScriptManagement();
-		attributeManager=new AttributeManagement(elastosCarrier, database, scriptManager);
-
-		Setting timeZoneSetting=database.getSettingByKey("timeZone");
-		if(timeZoneSetting==null){
-			timeZoneSetting=new Setting(0, "timeZone", "UTC");
-			database.saveSetting(timeZoneSetting);
-		}
-		timeZone=timeZoneSetting.getValue();
-
+		startApp();
 		this.primaryStage=primaryStage;
         this.primaryStage.setTitle("HyperConnect");
         this.primaryStage.setMinWidth(680);
@@ -130,42 +114,44 @@ public class App extends Application{
 		this.initHelpLayout();
 		this.setDashboardLayout();
 
-		/*Controller controller=database.getControllerByUserId("6MZziEYrDFkUaq1CaSqeyz5ehNUVQZcyFsHehLoBRg8T");
-		if(controller==null){
-			controller=new Controller(0, "6MZziEYrDFkUaq1CaSqeyz5ehNUVQZcyFsHehLoBRg8T", ControllerState.ACTIVE, ControllerConnectionState.OFFLINE);
-			database.saveController(controller);
-		}
-		if(elastosCarrier.getUserId().equals("BvDjoMK2XMrNHydTuaGpaMGTYRU4QyVh5sFuivYyVyrc")){
-			Device device=database.getDeviceByUserId("J1s9bhQJnR8gqWdJpNEfvVQ3ZP1KUqBXxSb8KQPwio3X");
-			if(device==null){
-				device=new Device(0, "J1s9bhQJnR8gqWdJpNEfvVQ3ZP1KUqBXxSb8KQPwio3X", DeviceConnectionState.OFFLINE);
-				database.saveDevice(device);
-			}
-		}
-		if(elastosCarrier.getUserId().equals("J1s9bhQJnR8gqWdJpNEfvVQ3ZP1KUqBXxSb8KQPwio3X")){
-			Device device=database.getDeviceByUserId("BvDjoMK2XMrNHydTuaGpaMGTYRU4QyVh5sFuivYyVyrc");
-			if(device==null){
-				device=new Device(0, "BvDjoMK2XMrNHydTuaGpaMGTYRU4QyVh5sFuivYyVyrc", DeviceConnectionState.OFFLINE);
-				database.saveDevice(device);
-			}
-		}*/
-
-		/*FileTransferState fileTransferState=FileTransferState.Connected;
-		System.out.println(fileTransferState);*/
-
 		database.setDeviceListConnectionState(DeviceConnectionState.OFFLINE);
 		database.setEventListState(EventState.DEACTIVATED);
 	}
 
 	@Override
 	public void stop(){
-		attributeManager.stopAll();
+		stopApp();
+		Platform.exit();
+	}
 
+	public void startApp(){
+		if(!DEBUG){
+			elastosCarrier=new ElastosCarrier(this);
+			elastosCarrier.start();
+		}
+		CustomUtil.getDirectoryByName("history");
+		database=new DatabaseSQLite("local.db");
+		scriptManager=new ScriptManagement();
+		attributeManager=new AttributeManagement(elastosCarrier, database, scriptManager);
+
+		Setting timeZoneSetting=database.getSettingByKey("timeZone");
+		if(timeZoneSetting==null){
+			timeZoneSetting=new Setting(0, "timeZone", "UTC");
+			database.saveSetting(timeZoneSetting);
+		}
+		timeZone=timeZoneSetting.getValue();
+	}
+
+	public void stopApp(){
+		attributeManager.stopAll();
+		database.closeConnection();
 		if(!DEBUG){
 			elastosCarrier.kill();
 		}
+	}
 
-		Platform.exit();
+	public Stage getPrimaryStage(){
+		return this.primaryStage;
 	}
 
 	public DatabaseInterface getDatabase(){
